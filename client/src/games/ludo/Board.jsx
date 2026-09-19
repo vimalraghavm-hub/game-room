@@ -1,7 +1,7 @@
 import React from 'react';
 
 const COMMON_TRACK_COORDS = [
-  { r: 6, c: 1 },  // 0 Red Start
+  { r: 6, c: 1 },  // 0 Red Start (Safe Star)
   { r: 6, c: 2 },  // 1
   { r: 6, c: 3 },  // 2
   { r: 6, c: 4 },  // 3
@@ -14,7 +14,7 @@ const COMMON_TRACK_COORDS = [
   { r: 0, c: 6 },  // 10
   { r: 0, c: 7 },  // 11
   { r: 0, c: 8 },  // 12
-  { r: 1, c: 8 },  // 13 Green Start
+  { r: 1, c: 8 },  // 13 Green Start (Safe Star)
   { r: 2, c: 8 },  // 14
   { r: 3, c: 8 },  // 15
   { r: 4, c: 8 },  // 16
@@ -27,7 +27,7 @@ const COMMON_TRACK_COORDS = [
   { r: 6, c: 14 }, // 23
   { r: 7, c: 14 }, // 24
   { r: 8, c: 14 }, // 25
-  { r: 8, c: 13 }, // 26 Yellow Start
+  { r: 8, c: 13 }, // 26 Yellow Start (Safe Star)
   { r: 8, c: 12 }, // 27
   { r: 8, c: 11 }, // 28
   { r: 8, c: 10 }, // 29
@@ -40,7 +40,7 @@ const COMMON_TRACK_COORDS = [
   { r: 14, c: 8 }, // 36
   { r: 14, c: 7 }, // 37
   { r: 14, c: 6 }, // 38
-  { r: 13, c: 6 }, // 39 Blue Start
+  { r: 13, c: 6 }, // 39 Blue Start (Safe Star)
   { r: 12, c: 6 }, // 40
   { r: 11, c: 6 }, // 41
   { r: 10, c: 6 }, // 42
@@ -70,17 +70,17 @@ const HOME_FINAL_COORDS = {
 };
 
 const YARD_TOKEN_SLOTS = {
-  0: [ { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 3, c: 2 }, { r: 3, c: 3 } ], // Red
-  1: [ { r: 2, c: 11 }, { r: 2, c: 12 }, { r: 3, c: 11 }, { r: 3, c: 12 } ], // Green
-  2: [ { r: 12, c: 11 }, { r: 12, c: 12 }, { r: 11, c: 11 }, { r: 11, c: 12 } ], // Yellow
-  3: [ { r: 12, c: 2 }, { r: 12, c: 3 }, { r: 11, c: 2 }, { r: 11, c: 3 } ], // Blue
+  0: [ { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 3, c: 2 }, { r: 3, c: 3 } ], // Red (Top-Left)
+  1: [ { r: 2, c: 11 }, { r: 2, c: 12 }, { r: 3, c: 11 }, { r: 3, c: 12 } ], // Green (Top-Right)
+  2: [ { r: 12, c: 11 }, { r: 12, c: 12 }, { r: 11, c: 11 }, { r: 11, c: 12 } ], // Yellow (Bottom-Right)
+  3: [ { r: 12, c: 2 }, { r: 12, c: 3 }, { r: 11, c: 2 }, { r: 11, c: 3 } ], // Blue (Bottom-Left)
 };
 
 export const Board = ({ gameState, onTokenClick, isMyTurn }) => {
   const currentPlayer = gameState?.currentPlayer;
   const validMoves = gameState?.validMoves || [];
 
-  // Helper to convert step (0..56) to (row, col)
+  // Convert step (0..56) to (row, col)
   const getTokenCoords = (colorIndex, step, tokenIndex) => {
     if (step === -1) {
       return YARD_TOKEN_SLOTS[colorIndex]?.[tokenIndex] || { r: 0, c: 0 };
@@ -97,38 +97,38 @@ export const Board = ({ gameState, onTokenClick, isMyTurn }) => {
     return HOME_FINAL_COORDS[colorIndex] || { r: 7, c: 7 };
   };
 
-  // Build grid cell elements
+  // Build grid cell elements for 15x15 Ludo board
   const cells = [];
   for (let r = 0; r < 15; r++) {
     for (let c = 0; c < 15; c++) {
-      let cellType = 'TRACK';
-      let cellColorClass = 'bg-slate-900 border-slate-800/60';
+      let cellColorClass = 'bg-white border-slate-300';
       let isStar = false;
+      let starColor = 'text-amber-500';
 
-      // Yards (6x6 corners)
-      if (r < 6 && c < 6) cellColorClass = 'bg-red-950/80 border-red-900/60'; // Red Yard
-      else if (r < 6 && c > 8) cellColorClass = 'bg-emerald-950/80 border-emerald-900/60'; // Green Yard
-      else if (r > 8 && c > 8) cellColorClass = 'bg-amber-950/80 border-amber-900/60'; // Yellow Yard
-      else if (r > 8 && c < 6) cellColorClass = 'bg-blue-950/80 border-blue-900/60'; // Blue Yard
+      // Yard Areas (6x6 Corners)
+      if (r < 6 && c < 6) cellColorClass = 'bg-red-50 border-red-200'; // Red Yard Top-Left
+      else if (r < 6 && c > 8) cellColorClass = 'bg-emerald-50 border-emerald-200'; // Green Yard Top-Right
+      else if (r > 8 && c > 8) cellColorClass = 'bg-amber-50 border-amber-200'; // Yellow Yard Bottom-Right
+      else if (r > 8 && c < 6) cellColorClass = 'bg-blue-50 border-blue-200'; // Blue Yard Bottom-Left
 
-      // Center (3x3)
+      // Center Finish Triangle (3x3)
       else if (r >= 6 && r <= 8 && c >= 6 && c <= 8) {
-        cellColorClass = 'bg-slate-950 border-purple-900/80';
+        cellColorClass = 'bg-amber-100 border-amber-300';
       }
 
       // Colored Home Paths
-      else if (r === 7 && c >= 1 && c <= 5) cellColorClass = 'bg-red-600 border-red-500/80';
-      else if (c === 7 && r >= 1 && r <= 5) cellColorClass = 'bg-emerald-600 border-emerald-500/80';
-      else if (r === 7 && c >= 9 && c <= 13) cellColorClass = 'bg-amber-500 border-amber-400/80';
-      else if (c === 7 && r >= 9 && r <= 13) cellColorClass = 'bg-blue-600 border-blue-500/80';
+      else if (r === 7 && c >= 1 && c <= 5) cellColorClass = 'bg-red-500 border-red-600';
+      else if (c === 7 && r >= 1 && r <= 5) cellColorClass = 'bg-emerald-500 border-emerald-600';
+      else if (r === 7 && c >= 9 && c <= 13) cellColorClass = 'bg-amber-400 border-amber-500';
+      else if (c === 7 && r >= 9 && r <= 13) cellColorClass = 'bg-blue-500 border-blue-600';
 
       // Starting Squares
-      else if (r === 6 && c === 1) cellColorClass = 'bg-red-700 border-red-600';
-      else if (r === 1 && c === 8) cellColorClass = 'bg-emerald-700 border-emerald-600';
-      else if (r === 8 && c === 13) cellColorClass = 'bg-amber-600 border-amber-500';
-      else if (r === 13 && c === 6) cellColorClass = 'bg-blue-700 border-blue-600';
+      else if (r === 6 && c === 1) { cellColorClass = 'bg-red-500 border-red-600'; isStar = true; starColor = 'text-white'; }
+      else if (r === 1 && c === 8) { cellColorClass = 'bg-emerald-500 border-emerald-600'; isStar = true; starColor = 'text-white'; }
+      else if (r === 8 && c === 13) { cellColorClass = 'bg-amber-400 border-amber-500'; isStar = true; starColor = 'text-white'; }
+      else if (r === 13 && c === 6) { cellColorClass = 'bg-blue-500 border-blue-600'; isStar = true; starColor = 'text-white'; }
 
-      // Check Star safe tiles
+      // Safe Star Squares
       const isSafeStar = COMMON_TRACK_COORDS.some(
         (coord, idx) => [8, 21, 34, 47].includes(idx) && coord.r === r && coord.c === c
       );
@@ -137,41 +137,71 @@ export const Board = ({ gameState, onTokenClick, isMyTurn }) => {
       cells.push(
         <div
           key={`${r}_${c}`}
-          className={`relative border flex items-center justify-center ${cellColorClass}`}
+          className={`relative border-[0.5px] flex items-center justify-center ${cellColorClass}`}
         >
-          {isStar && <span className="text-[10px] sm:text-xs">⭐</span>}
+          {isStar && <span className={`text-[10px] sm:text-xs drop-shadow ${starColor}`}>⭐</span>}
         </div>
       );
     }
   }
 
   return (
-    <div className="relative w-full aspect-square bg-slate-950 border-4 border-slate-800 rounded-2xl shadow-2xl overflow-hidden select-none">
-      {/* 15x15 Ludo Grid Layout */}
+    <div className="relative w-full aspect-square bg-amber-50 border-[6px] sm:border-[10px] border-amber-200 rounded-3xl shadow-2xl overflow-hidden select-none ring-4 ring-amber-400/40">
+      
+      {/* 15x15 Physical Ludo Board Grid */}
       <div className="grid grid-cols-15 grid-rows-15 w-full h-full">
         {cells}
       </div>
 
-      {/* Decorative Yard Boxes */}
-      <div className="absolute top-[3.3%] left-[3.3%] w-[33.3%] h-[33.3%] border-4 border-red-600 rounded-xl bg-red-900/30 flex items-center justify-center">
-        <span className="text-red-400 font-black text-xs sm:text-sm uppercase tracking-wider">RED</span>
-      </div>
-      <div className="absolute top-[3.3%] right-[3.3%] w-[33.3%] h-[33.3%] border-4 border-emerald-600 rounded-xl bg-emerald-900/30 flex items-center justify-center">
-        <span className="text-emerald-400 font-black text-xs sm:text-sm uppercase tracking-wider">GREEN</span>
-      </div>
-      <div className="absolute bottom-[3.3%] right-[3.3%] w-[33.3%] h-[33.3%] border-4 border-amber-500 rounded-xl bg-amber-900/30 flex items-center justify-center">
-        <span className="text-amber-400 font-black text-xs sm:text-sm uppercase tracking-wider">YELLOW</span>
-      </div>
-      <div className="absolute bottom-[3.3%] left-[3.3%] w-[33.3%] h-[33.3%] border-4 border-blue-600 rounded-xl bg-blue-900/30 flex items-center justify-center">
-        <span className="text-blue-400 font-black text-xs sm:text-sm uppercase tracking-wider">BLUE</span>
+      {/* Illustrated Yard Quadrant Boxes */}
+      {/* Red Yard (Top-Left) */}
+      <div className="absolute top-[3.3%] left-[3.3%] w-[33.3%] h-[33.3%] border-4 border-red-500 rounded-2xl bg-red-500/20 shadow-inner flex items-center justify-center">
+        <div className="grid grid-cols-2 grid-rows-2 gap-3 w-3/4 h-3/4 p-2 bg-white/90 rounded-xl shadow">
+          <div className="rounded-full bg-red-100 border-2 border-red-400" />
+          <div className="rounded-full bg-red-100 border-2 border-red-400" />
+          <div className="rounded-full bg-red-100 border-2 border-red-400" />
+          <div className="rounded-full bg-red-100 border-2 border-red-400" />
+        </div>
       </div>
 
-      {/* Center Home Triangle */}
-      <div className="absolute top-[40%] left-[40%] w-[20%] h-[20%] bg-slate-900 border-2 border-amber-400 rounded-xl flex items-center justify-center shadow-inner">
-        <span className="text-xl sm:text-2xl">🏆</span>
+      {/* Green Yard (Top-Right) */}
+      <div className="absolute top-[3.3%] right-[3.3%] w-[33.3%] h-[33.3%] border-4 border-emerald-500 rounded-2xl bg-emerald-500/20 shadow-inner flex items-center justify-center">
+        <div className="grid grid-cols-2 grid-rows-2 gap-3 w-3/4 h-3/4 p-2 bg-white/90 rounded-xl shadow">
+          <div className="rounded-full bg-emerald-100 border-2 border-emerald-400" />
+          <div className="rounded-full bg-emerald-100 border-2 border-emerald-400" />
+          <div className="rounded-full bg-emerald-100 border-2 border-emerald-400" />
+          <div className="rounded-full bg-emerald-100 border-2 border-emerald-400" />
+        </div>
       </div>
 
-      {/* Render Player Tokens Layer */}
+      {/* Yellow Yard (Bottom-Right) */}
+      <div className="absolute bottom-[3.3%] right-[3.3%] w-[33.3%] h-[33.3%] border-4 border-amber-400 rounded-2xl bg-amber-400/20 shadow-inner flex items-center justify-center">
+        <div className="grid grid-cols-2 grid-rows-2 gap-3 w-3/4 h-3/4 p-2 bg-white/90 rounded-xl shadow">
+          <div className="rounded-full bg-amber-100 border-2 border-amber-400" />
+          <div className="rounded-full bg-amber-100 border-2 border-amber-400" />
+          <div className="rounded-full bg-amber-100 border-2 border-amber-400" />
+          <div className="rounded-full bg-amber-100 border-2 border-amber-400" />
+        </div>
+      </div>
+
+      {/* Blue Yard (Bottom-Left) */}
+      <div className="absolute bottom-[3.3%] left-[3.3%] w-[33.3%] h-[33.3%] border-4 border-blue-500 rounded-2xl bg-blue-500/20 shadow-inner flex items-center justify-center">
+        <div className="grid grid-cols-2 grid-rows-2 gap-3 w-3/4 h-3/4 p-2 bg-white/90 rounded-xl shadow">
+          <div className="rounded-full bg-blue-100 border-2 border-blue-400" />
+          <div className="rounded-full bg-blue-100 border-2 border-blue-400" />
+          <div className="rounded-full bg-blue-100 border-2 border-blue-400" />
+          <div className="rounded-full bg-blue-100 border-2 border-blue-400" />
+        </div>
+      </div>
+
+      {/* Central Finishing Home Area */}
+      <div className="absolute top-[40%] left-[40%] w-[20%] h-[20%] bg-white border-2 border-amber-400 rounded-xl flex items-center justify-center shadow-md">
+        <div className="w-full h-full relative overflow-hidden rounded-lg flex items-center justify-center">
+          <span className="text-xl sm:text-2xl drop-shadow">🏆</span>
+        </div>
+      </div>
+
+      {/* Interactive 3D Player Tokens Layer */}
       {gameState?.players?.map((player) => {
         const colorHexMap = {
           0: '#EF4444', // Red
@@ -189,7 +219,6 @@ export const Board = ({ gameState, onTokenClick, isMyTurn }) => {
             gameState?.hasRolled &&
             validMoves.includes(tIdx);
 
-          // Calculate percentage coordinates (each cell is 100 / 15 = 6.666%)
           const cellWidth = 100 / 15;
           const leftPct = coords.c * cellWidth + cellWidth / 2;
           const topPct = coords.r * cellWidth + cellWidth / 2;
@@ -203,10 +232,11 @@ export const Board = ({ gameState, onTokenClick, isMyTurn }) => {
                 left: `${leftPct}%`,
                 top: `${topPct}%`,
                 backgroundColor: colorHex,
+                boxShadow: `0 3px 8px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.4)`,
               }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 w-[5%] h-[5%] rounded-full border-2 border-white shadow-md flex items-center justify-center transition-all duration-300 z-30 ${
+              className={`absolute -translate-x-1/2 -translate-y-1/2 w-[5.5%] h-[5.5%] rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-all duration-300 z-30 ${
                 isEligibleToMove
-                  ? 'ring-4 ring-amber-300 ring-offset-2 ring-offset-slate-950 scale-125 animate-pulse cursor-pointer'
+                  ? 'ring-4 ring-amber-300 ring-offset-2 ring-offset-amber-50 scale-125 animate-pulse cursor-pointer'
                   : ''
               }`}
               title={`Token #${tIdx + 1} (${player.username})`}
