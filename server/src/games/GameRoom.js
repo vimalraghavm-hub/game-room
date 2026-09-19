@@ -81,7 +81,7 @@ export class GameRoom {
 
   toggleReady(socketId) {
     const player = this.players.find(p => p.id === socketId);
-    if (player && !player.isHost) {
+    if (player && this.status === 'LOBBY') {
       player.isReady = !player.isReady;
       return true;
     }

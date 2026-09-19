@@ -57,7 +57,7 @@ export const PlayerAvatar = ({ player, isCurrentTurn, isHost, gameType, score })
           {player.rank && (
             <span className="text-amber-400 font-bold">Rank #{player.rank}</span>
           )}
-          {!player.isHost && player.isReady !== undefined && (
+          {player.isReady !== undefined && (
             <div className="flex items-center gap-1">
               {player.isReady ? (
                 <span className="text-emerald-400 flex items-center gap-1 font-semibold text-xs">

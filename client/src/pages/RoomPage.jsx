@@ -242,8 +242,23 @@ export const RoomPage = () => {
           </div>
 
           {/* Player Ready / Host Start Controls */}
-          <div className="pt-6 border-t border-slate-800">
-            {isHost ? (
+          <div className="pt-6 border-t border-slate-800 space-y-4">
+            
+            {/* Ready Toggle Button for Current Player */}
+            <button
+              onClick={handleToggleReady}
+              className={`w-full py-3.5 rounded-2xl font-extrabold text-base shadow-xl flex items-center justify-center gap-2 transition-all ${
+                me?.isReady
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30'
+                  : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/30'
+              }`}
+            >
+              <CheckCircle2 className="w-5 h-5" />
+              {me?.isReady ? '✓ YOU ARE READY! (CLICK TO UNREADY)' : 'CLICK TO BECOME READY'}
+            </button>
+
+            {/* Host Start Game Control */}
+            {isHost && (
               <button
                 onClick={handleStartGame}
                 disabled={!canStart || starting}
@@ -257,21 +272,17 @@ export const RoomPage = () => {
                 {starting
                   ? 'STARTING GAME...'
                   : canStart
-                  ? 'START GAME NOW'
-                  : 'WAITING FOR ALL PLAYERS TO BE READY (MIN 2)'}
+                  ? 'START GAME NOW 🚀'
+                  : roomState.players.length < 2
+                  ? `WAITING FOR PLAYERS (${roomState.players.length}/${roomState.maxPlayers})`
+                  : 'WAITING FOR ALL PLAYERS TO BE READY'}
               </button>
-            ) : (
-              <button
-                onClick={handleToggleReady}
-                className={`w-full py-4 rounded-2xl font-extrabold text-lg shadow-xl flex items-center justify-center gap-2 transition-all ${
-                  me?.isReady
-                    ? 'bg-emerald-600 text-white shadow-emerald-600/30 hover:bg-emerald-500'
-                    : 'bg-amber-500 text-slate-950 shadow-amber-500/30 hover:bg-amber-400'
-                }`}
-              >
-                <CheckCircle2 className="w-6 h-6" />
-                {me?.isReady ? 'YOU ARE READY! (CLICK TO UNREADY)' : 'TOGGLE READY STATUS'}
-              </button>
+            )}
+
+            {!isHost && canStart && (
+              <div className="text-center text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 py-2.5 rounded-xl animate-pulse">
+                ALL PLAYERS READY! WAITING FOR HOST TO START GAME...
+              </div>
             )}
           </div>
 
