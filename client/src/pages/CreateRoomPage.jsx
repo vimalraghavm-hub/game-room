@@ -31,10 +31,12 @@ export const CreateRoomPage = () => {
 
       if (res?.roomCode) {
         navigate(`/room/${res.roomCode}`);
+      } else {
+        setError('Room creation failed. Please try again.');
+        setLoading(false);
       }
     } catch (err) {
-      setError(err.message || 'Failed to create room.');
-    } finally {
+      setError(err.message || 'Unable to create room. Please check connection and try again.');
       setLoading(false);
     }
   };

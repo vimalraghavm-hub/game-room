@@ -29,8 +29,8 @@ app.use(cors({
 
 app.use(express.json());
 
-// Health Check Endpoint
-app.get('/api/health', (req, res) => {
+// Health Check Endpoints
+app.get(['/health', '/api/health'], (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 

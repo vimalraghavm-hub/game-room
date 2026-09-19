@@ -4,7 +4,10 @@ import { useAuth } from './AuthContext';
 
 const SocketContext = createContext(null);
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001');
+const envUrl = import.meta.env.VITE_SERVER_URL;
+const SERVER_URL = (envUrl && envUrl !== 'http://localhost:3001')
+  ? envUrl
+  : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:10000');
 
 export const SocketProvider = ({ children }) => {
   const { profile } = useAuth();
@@ -22,17 +25,19 @@ export const SocketProvider = ({ children }) => {
   }, [roomState]);
 
   useEffect(() => {
+    console.log('🔌 CLIENT: Connecting Socket.IO to:', SERVER_URL);
     const newSocket = io(SERVER_URL, {
       transports: ['websocket', 'polling'],
       autoConnect: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
+      timeout: 10000,
     });
 
     setSocket(newSocket);
 
     newSocket.on('connect', () => {
-      console.log('⚡ Socket connected:', newSocket.id);
+      console.log('⚡ CLIENT SOCKET CONNECTED:', newSocket.id);
       setConnected(true);
       setIsReconnecting(false);
 
@@ -55,8 +60,12 @@ export const SocketProvider = ({ children }) => {
       }
     });
 
+    newSocket.on('connect_error', (err) => {
+      console.warn('⚠️ CLIENT: Socket connect error:', err.message);
+    });
+
     newSocket.on('disconnect', (reason) => {
-      console.warn('❌ Socket disconnected:', reason);
+      console.warn('❌ CLIENT SOCKET DISCONNECTED:', reason);
       setConnected(false);
       setIsReconnecting(true);
     });
@@ -103,125 +112,111 @@ export const SocketProvider = ({ children }) => {
     };
   }, []);
 
-  const createRoom = (gameType, options = {}) => {
+  const emitWithTimeout = (eventName, data, timeoutMs = 7000) => {
     return new Promise((resolve, reject) => {
-      if (!socket) return reject(new Error('Socket not connected.'));
-      socket.emit(
-        'ROOM_CREATE',
-        {
-          gameType,
-          isPrivate: options.isPrivate,
-          password: options.password,
-          maxPlayers: options.maxPlayers,
-          user: profile,
-        },
-        (res) => {
-          if (res?.success) {
-            setRoomState(res.roomState);
-            sessionStorage.setItem(
-              'gameroom_session',
-              JSON.stringify({ roomCode: res.roomCode, userId: profile?.id })
-            );
-            resolve(res);
-          } else {
-            reject(new Error(res?.error || 'Failed to create room.'));
-          }
-        }
-      );
-    });
-  };
-
-  const joinRoom = (roomCode, password = '') => {
-    return new Promise((resolve, reject) => {
-      if (!socket) return reject(new Error('Socket not connected.'));
-      socket.emit(
-        'ROOM_JOIN',
-        {
-          roomCode,
-          password,
-          user: profile,
-        },
-        (res) => {
-          if (res?.success) {
-            setRoomState(res.roomState);
-            sessionStorage.setItem(
-              'gameroom_session',
-              JSON.stringify({ roomCode: res.roomCode, userId: profile?.id })
-            );
-            resolve(res);
-          } else {
-            reject(new Error(res?.error || 'Failed to join room.'));
-          }
-        }
-      );
-    });
-  };
-
-  const toggleReady = () => {
-    return new Promise((resolve, reject) => {
-      if (!socket) return reject(new Error('Socket not connected.'));
-      socket.emit('PLAYER_READY', {}, (res) => {
-        if (res?.success) resolve(res);
-        else reject(new Error(res?.error || 'Failed to toggle ready.'));
-      });
-    });
-  };
-
-  const startGame = () => {
-    return new Promise((resolve, reject) => {
-      if (!socket) return reject(new Error('Socket not connected.'));
-      socket.emit('GAME_START', {}, (res) => {
-        if (res?.success) resolve(res);
-        else reject(new Error(res?.error || 'Failed to start game.'));
-      });
-    });
-  };
-
-  const leaveRoom = () => {
-    return new Promise((resolve) => {
-      sessionStorage.removeItem('gameroom_session');
-      if (socket) {
-        socket.emit('ROOM_LEAVE', {}, () => {
-          setRoomState(null);
-          setGameState(null);
-          resolve();
-        });
-      } else {
-        setRoomState(null);
-        setGameState(null);
-        resolve();
+      if (!socket) return reject(new Error('Socket not initialized. Please refresh page.'));
+      if (!socket.connected) {
+        console.log('🔄 CLIENT: Socket disconnected, triggering connect()...');
+        socket.connect();
       }
-    });
-  };
 
-  const rollDice = () => {
-    return new Promise((resolve, reject) => {
-      if (!socket) return reject(new Error('Socket not connected.'));
-      socket.emit('ROLL_DICE', {}, (res) => {
-        if (res?.success) resolve(res);
-        else reject(new Error(res?.error || 'Failed to roll dice.'));
+      let timer = setTimeout(() => {
+        console.error(`⏱️ CLIENT: Server request timed out for event: ${eventName}`);
+        reject(new Error('Server request timed out. Please check server connection and try again.'));
+      }, timeoutMs);
+
+      console.log(`📤 CLIENT: Sending ${eventName} request to server...`, data);
+
+      socket.emit(eventName, data, (response) => {
+        clearTimeout(timer);
+        console.log(`📥 CLIENT: Received response for ${eventName}:`, response);
+        resolve(response);
       });
     });
   };
 
-  const moveToken = (tokenIndex) => {
-    return new Promise((resolve, reject) => {
-      if (!socket) return reject(new Error('Socket not connected.'));
-      socket.emit('MOVE_TOKEN', { tokenIndex }, (res) => {
-        if (res?.success) resolve(res);
-        else reject(new Error(res?.error || 'Failed to move token.'));
-      });
+  const createRoom = async (gameType, options = {}) => {
+    console.log('CREATE ROOM clicked for game:', gameType);
+    const res = await emitWithTimeout('ROOM_CREATE', {
+      gameType,
+      isPrivate: options.isPrivate,
+      password: options.password,
+      maxPlayers: options.maxPlayers,
+      user: profile,
     });
+
+    if (res?.success) {
+      console.log('Create room response received successfully:', res.roomCode);
+      setRoomState(res.roomState);
+      sessionStorage.setItem(
+        'gameroom_session',
+        JSON.stringify({ roomCode: res.roomCode, userId: profile?.id })
+      );
+      return res;
+    } else {
+      throw new Error(res?.error || 'Failed to create room.');
+    }
   };
 
-  const sendChatMessage = (message) => {
-    return new Promise((resolve, reject) => {
-      if (!socket) return reject(new Error('Socket not connected.'));
-      socket.emit('SEND_CHAT', { message }, (res) => {
-        if (res?.success) resolve(res);
-        else reject(new Error(res?.error || 'Failed to send message.'));
-      });
+  const joinRoom = async (roomCode, password = '') => {
+    console.log('JOIN ROOM clicked for code:', roomCode);
+    const res = await emitWithTimeout('ROOM_JOIN', {
+      roomCode,
+      password,
+      user: profile,
     });
+
+    if (res?.success) {
+      setRoomState(res.roomState);
+      sessionStorage.setItem(
+        'gameroom_session',
+        JSON.stringify({ roomCode: res.roomCode, userId: profile?.id })
+      );
+      return res;
+    } else {
+      throw new Error(res?.error || 'Failed to join room.');
+    }
+  };
+
+  const toggleReady = async () => {
+    const res = await emitWithTimeout('PLAYER_READY', {});
+    if (res?.success) return res;
+    throw new Error(res?.error || 'Failed to toggle ready.');
+  };
+
+  const startGame = async () => {
+    const res = await emitWithTimeout('GAME_START', {});
+    if (res?.success) return res;
+    throw new Error(res?.error || 'Failed to start game.');
+  };
+
+  const leaveRoom = async () => {
+    sessionStorage.removeItem('gameroom_session');
+    if (socket && socket.connected) {
+      try {
+        await emitWithTimeout('ROOM_LEAVE', {}, 3000);
+      } catch (e) {}
+    }
+    setRoomState(null);
+    setGameState(null);
+  };
+
+  const rollDice = async () => {
+    const res = await emitWithTimeout('ROLL_DICE', {});
+    if (res?.success) return res;
+    throw new Error(res?.error || 'Failed to roll dice.');
+  };
+
+  const moveToken = async (tokenIndex) => {
+    const res = await emitWithTimeout('MOVE_TOKEN', { tokenIndex });
+    if (res?.success) return res;
+    throw new Error(res?.error || 'Failed to move token.');
+  };
+
+  const sendChatMessage = async (message) => {
+    const res = await emitWithTimeout('SEND_CHAT', { message });
+    if (res?.success) return res;
+    throw new Error(res?.error || 'Failed to send message.');
   };
 
   return (
