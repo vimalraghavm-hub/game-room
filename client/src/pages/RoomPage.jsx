@@ -6,6 +6,7 @@ import { PlayerAvatar } from '../components/PlayerAvatar';
 import { ChatWidget } from '../components/ChatWidget';
 import { SnakeLadderView } from '../games/snake-ladder/SnakeLadderView';
 import { LudoView } from '../games/ludo/LudoView';
+import { UnoView } from '../games/uno/UnoView';
 import {
   Copy,
   Check,
@@ -104,7 +105,7 @@ export const RoomPage = () => {
                 ROOM: {roomState.roomCode}
               </span>
               <span className="text-xs bg-slate-800 text-slate-300 font-bold px-2.5 py-1 rounded-full uppercase">
-                {roomState.gameType === 'SNAKE_LADDER' ? '🎲 Snake & Ladder' : '🟢 Ludo'}
+                {roomState.gameType === 'SNAKE_LADDER' ? '🎲 Snake & Ladder' : roomState.gameType === 'LUDO' ? '🟢 Ludo' : '🃏 UNO Card Game'}
               </span>
             </div>
 
@@ -136,8 +137,10 @@ export const RoomPage = () => {
         {/* Game Component */}
         {roomState.gameType === 'SNAKE_LADDER' ? (
           <SnakeLadderView roomState={roomState} />
-        ) : (
+        ) : roomState.gameType === 'LUDO' ? (
           <LudoView roomState={roomState} />
+        ) : (
+          <UnoView roomState={roomState} />
         )}
       </div>
     );
@@ -159,7 +162,7 @@ export const RoomPage = () => {
               Multiplayer Lobby
             </span>
             <span className="text-xs font-bold text-slate-400">
-              {roomState.gameType === 'SNAKE_LADDER' ? '🎲 Snake & Ladder' : '🟢 Ludo'}
+              {roomState.gameType === 'SNAKE_LADDER' ? '🎲 Snake & Ladder' : roomState.gameType === 'LUDO' ? '🟢 Ludo' : '🃏 UNO Card Game'}
             </span>
           </div>
 

@@ -15,6 +15,10 @@ import { JoinRoomPage } from './pages/JoinRoomPage';
 import { RoomPage } from './pages/RoomPage';
 import { ProfilePage } from './pages/ProfilePage';
 
+import SnakeLadderAiView from './games/snake-ladder/SnakeLadderAiView';
+import LudoAiView from './games/ludo/LudoAiView';
+import UnoAiView from './games/uno/UnoAiView';
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -33,6 +37,11 @@ export default function App() {
                 <Route path="/join" element={<JoinRoomPage />} />
                 <Route path="/join/:codeParam" element={<JoinRoomPage />} />
                 <Route path="/room/:roomCode" element={<RoomPage />} />
+
+                {/* AI Single Player Modes */}
+                <Route path="/snake-ladder/ai" element={<SnakeLadderAiView />} />
+                <Route path="/ludo/ai" element={<LudoAiView />} />
+                <Route path="/uno/ai" element={<UnoAiView />} />
 
                 <Route path="/profile" element={<ProfilePage />} />
 

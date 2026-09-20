@@ -1,5 +1,6 @@
 import { SnakeLadderGame } from './SnakeLadderGame.js';
 import { LudoGame } from './LudoGame.js';
+import UnoGame from './UnoGame.js';
 
 export class GameRoom {
   constructor(roomCode, gameType, options = {}) {
@@ -103,11 +104,14 @@ export class GameRoom {
 
     if (this.gameType === 'SNAKE_LADDER') {
       this.gameInstance = new SnakeLadderGame();
+      this.gameInstance.init(this.players);
     } else if (this.gameType === 'LUDO') {
       this.gameInstance = new LudoGame();
+      this.gameInstance.init(this.players);
+    } else if (this.gameType === 'UNO') {
+      this.gameInstance = new UnoGame(this.players.map(p => ({ id: p.id, name: p.username, avatar: p.avatar })));
+      this.gameInstance.start();
     }
-
-    this.gameInstance.init(this.players);
     return { success: true, gameType: this.gameType };
   }
 

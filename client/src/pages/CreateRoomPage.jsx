@@ -67,11 +67,11 @@ export const CreateRoomPage = () => {
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
               1. Choose Game
             </label>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <button
                 type="button"
                 onClick={() => setGameType('SNAKE_LADDER')}
-                className={`p-5 rounded-2xl border-2 text-left flex flex-col justify-between transition-all ${
+                className={`p-4 rounded-2xl border-2 text-left flex flex-col justify-between transition-all ${
                   gameType === 'SNAKE_LADDER'
                     ? 'bg-purple-950/60 border-purple-500 ring-2 ring-purple-500/40 shadow-lg'
                     : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
@@ -79,15 +79,15 @@ export const CreateRoomPage = () => {
               >
                 <span className="text-3xl mb-2">🎲</span>
                 <div>
-                  <h4 className="font-extrabold text-white text-base">Snake & Ladder</h4>
-                  <p className="text-xs text-slate-400 mt-0.5">Classic 100-tile climb</p>
+                  <h4 className="font-extrabold text-white text-sm">Snake & Ladder</h4>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Classic 100 climb</p>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setGameType('LUDO')}
-                className={`p-5 rounded-2xl border-2 text-left flex flex-col justify-between transition-all ${
+                className={`p-4 rounded-2xl border-2 text-left flex flex-col justify-between transition-all ${
                   gameType === 'LUDO'
                     ? 'bg-blue-950/60 border-blue-500 ring-2 ring-blue-500/40 shadow-lg'
                     : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
@@ -95,8 +95,24 @@ export const CreateRoomPage = () => {
               >
                 <span className="text-3xl mb-2">🟢</span>
                 <div>
-                  <h4 className="font-extrabold text-white text-base">Ludo Online</h4>
-                  <p className="text-xs text-slate-400 mt-0.5">4-token race & capture</p>
+                  <h4 className="font-extrabold text-white text-sm">Ludo Online</h4>
+                  <p className="text-[10px] text-slate-400 mt-0.5">4-token race & capture</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setGameType('UNO')}
+                className={`p-4 rounded-2xl border-2 text-left flex flex-col justify-between transition-all ${
+                  gameType === 'UNO'
+                    ? 'bg-amber-950/60 border-amber-500 ring-2 ring-amber-500/40 shadow-lg'
+                    : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                <span className="text-3xl mb-2">🃏</span>
+                <div>
+                  <h4 className="font-extrabold text-white text-sm">UNO Card Game</h4>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Match colors & action cards</p>
                 </div>
               </button>
             </div>

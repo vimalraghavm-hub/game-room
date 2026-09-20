@@ -1,6 +1,7 @@
 import { registerRoomHandlers } from './roomHandler.js';
 import { registerGameHandlers } from './gameHandler.js';
 import { registerChatHandlers } from './chatHandler.js';
+import { registerUnoHandlers } from './unoHandler.js';
 
 const rooms = new Map(); // roomCode -> GameRoom instance
 
@@ -11,6 +12,7 @@ export function initSocketIO(io) {
     registerRoomHandlers(io, socket, rooms);
     registerGameHandlers(io, socket, rooms);
     registerChatHandlers(io, socket, rooms);
+    registerUnoHandlers(io, socket, rooms);
 
     socket.on('disconnect', (reason) => {
       console.log(`❌ Client disconnected: ${socket.id} (${reason})`);

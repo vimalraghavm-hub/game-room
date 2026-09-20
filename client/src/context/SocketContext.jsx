@@ -219,6 +219,24 @@ export const SocketProvider = ({ children }) => {
     throw new Error(res?.error || 'Failed to send message.');
   };
 
+  const playUnoCard = async (cardId, chosenColor) => {
+    const res = await emitWithTimeout('UNO_PLAY_CARD', { cardId, chosenColor });
+    if (res?.success) return res;
+    throw new Error(res?.error || 'Failed to play card.');
+  };
+
+  const drawUnoCard = async () => {
+    const res = await emitWithTimeout('UNO_DRAW_CARD', {});
+    if (res?.success) return res;
+    throw new Error(res?.error || 'Failed to draw card.');
+  };
+
+  const callUno = async () => {
+    const res = await emitWithTimeout('UNO_CALL_UNO', {});
+    if (res?.success) return res;
+    throw new Error(res?.error || 'Failed to call UNO.');
+  };
+
   return (
     <SocketContext.Provider
       value={{
@@ -237,6 +255,9 @@ export const SocketProvider = ({ children }) => {
         rollDice,
         moveToken,
         sendChatMessage,
+        playUnoCard,
+        drawUnoCard,
+        callUno,
       }}
     >
       {children}
