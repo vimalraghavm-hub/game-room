@@ -264,4 +264,4 @@ class UnoGame {
   }
 }
 
-module.exports = UnoGame;
+export default UnoGame;
