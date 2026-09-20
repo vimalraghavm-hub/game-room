@@ -1,254 +1,145 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-// Color palette for alternating vibrant squares
-const SQUARE_COLORS = [
-  '#F472B6', // Pink
-  '#38BDF8', // Cyan
-  '#34D399', // Emerald
-  '#FBBF24', // Amber
-  '#A78BFA', // Violet
-  '#FB923C', // Orange
-  '#A3E635', // Lime
-  '#2DD4BF', // Teal
-  '#FB7185', // Rose
-  '#818CF8', // Indigo
+// Vintage pawn color palettes (Muted Red, Muted Green, Muted Blue, Muted Gold/Yellow)
+const PAWN_STYLES = [
+  { main: '#B91C1C', dark: '#7F1D1D', label: 'P1', border: '#FCA5A5' },
+  { main: '#047857', dark: '#064E3B', label: 'P2', border: '#6EE7B7' },
+  { main: '#1D4ED8', dark: '#1E3A8A', label: 'P3', border: '#93C5FD' },
+  { main: '#B45309', dark: '#78350F', label: 'P4', border: '#FDE68A' },
 ];
 
-export const Board = ({ gameState, snakes = {}, ladders = {} }) => {
+export const Board = ({ gameState }) => {
+  const [animatedPositions, setAnimatedPositions] = useState({});
+  const animationTimersRef = useRef({});
+
   /**
-   * Convert position (1..100) to grid row (0..9, 0=bottom) and col (0..9, 0=left)
-   * Position 1 = (row 0, col 0) [bottom-left]
-   * Position 10 = (row 0, col 9) [bottom-right]
-   * Position 11 = (row 1, col 9) [row 2 right]
-   * Position 20 = (row 1, col 0) [row 2 left]
-   * ...
-   * Position 100 = (row 9, col 0) [top-left]
+   * Convert position (1..100) to grid coordinates (percentage)
+   * 1 = (row 0, col 0) [bottom-left]
+   * 10 = (row 0, col 9) [bottom-right]
+   * 11 = (row 1, col 9) [row 2 right]
+   * 20 = (row 1, col 0) [row 2 left]
+   * 100 = (row 9, col 0) [top-left]
    */
-  const getPositionCoords = (pos) => {
+  const getCenterCoords = (pos) => {
     if (pos < 1) pos = 1;
     if (pos > 100) pos = 100;
 
     const zeroIdx = pos - 1;
-    const r = Math.floor(zeroIdx / 10); // 0 at bottom, 9 at top
+    const r = Math.floor(zeroIdx / 10);
     const rem = zeroIdx % 10;
-    const c = (r % 2 === 0) ? rem : (9 - rem); // Even rows left-to-right, odd rows right-to-left
+    const c = (r % 2 === 0) ? rem : (9 - rem);
 
-    return { r, c };
-  };
-
-  /**
-   * Calculate SVG percentage coordinates (x%, y%) for position 1..100
-   * x: 0% at left, 100% at right
-   * y: 0% at top, 100% at bottom
-   */
-  const getCenterCoords = (pos) => {
-    const { r, c } = getPositionCoords(pos);
     const x = c * 10 + 5;
-    const y = (9 - r) * 10 + 5; // Invert r for y (0 at top)
+    const y = (9 - r) * 10 + 5;
     return { x, y };
   };
 
-  // Generate 100 grid cells for rendering (Row 9 top down to Row 0 bottom)
-  const gridRows = [];
-  for (let r = 9; r >= 0; r--) {
-    const rowCells = [];
-    const isOddRowFromBottom = r % 2 === 1; // r=1,3,5,7,9 are right-to-left
-    for (let c = 0; c < 10; c++) {
-      const colIdx = isOddRowFromBottom ? (9 - c) : c;
-      const squareNum = r * 10 + colIdx + 1;
-      rowCells.push(squareNum);
-    }
-    gridRows.push(rowCells);
-  }
+  // Step-by-step movement animation loop
+  useEffect(() => {
+    if (!gameState?.players) return;
 
-  // Helper to render ladder SVG graphics
-  const renderLadder = (start, end) => {
-    const from = getCenterCoords(Number(start));
-    const to = getCenterCoords(Number(end));
+    gameState.players.forEach((player, pIdx) => {
+      const targetPos = player.position || 1;
+      const currentAnimPos = animatedPositions[player.id] || 1;
 
-    // Angle and perpendicular offsets for ladder rungs
-    const dx = to.x - from.x;
-    const dy = to.y - from.y;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    const nx = -dy / len * 1.5; // offset for side rails %
-    const ny = dx / len * 1.5;
+      if (currentAnimPos !== targetPos) {
+        if (animationTimersRef.current[player.id]) {
+          clearInterval(animationTimersRef.current[player.id]);
+        }
 
-    // Generate 6-8 rungs along the ladder
-    const rungCount = Math.max(4, Math.floor(len / 4));
-    const rungs = [];
-    for (let i = 1; i < rungCount; i++) {
-      const t = i / rungCount;
-      const rx = from.x + dx * t;
-      const ry = from.y + dy * t;
-      rungs.push({
-        x1: rx - nx,
-        y1: ry - ny,
-        x2: rx + nx,
-        y2: ry + ny,
-      });
-    }
+        const stepDir = targetPos > currentAnimPos ? 1 : -1;
+        let curr = currentAnimPos;
 
-    return (
-      <g key={`ladder_${start}_${end}`} className="drop-shadow-md">
-        {/* Rail 1 */}
-        <line
-          x1={from.x - nx}
-          y1={from.y - ny}
-          x2={to.x - nx}
-          y2={to.y - ny}
-          stroke="#D97706"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-        {/* Rail 2 */}
-        <line
-          x1={from.x + nx}
-          y1={from.y + ny}
-          x2={to.x + nx}
-          y2={to.y + ny}
-          stroke="#D97706"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-        {/* Rungs */}
-        {rungs.map((rung, idx) => (
-          <line
-            key={idx}
-            x1={rung.x1}
-            y1={rung.y1}
-            x2={rung.x2}
-            y2={rung.y2}
-            stroke="#F59E0B"
-            strokeWidth="1.4"
-            strokeLinecap="round"
-          />
-        ))}
-      </g>
-    );
-  };
+        animationTimersRef.current[player.id] = setInterval(() => {
+          curr += stepDir;
+          setAnimatedPositions(prev => ({ ...prev, [player.id]: curr }));
 
-  // Helper to render snake SVG graphics
-  const renderSnake = (start, end) => {
-    const head = getCenterCoords(Number(start));
-    const tail = getCenterCoords(Number(end));
+          if (curr === targetPos) {
+            clearInterval(animationTimersRef.current[player.id]);
+          }
+        }, 180);
+      }
+    });
 
-    const midX = (head.x + tail.x) / 2 + (head.x > tail.x ? 12 : -12);
-    const midY = (head.y + tail.y) / 2;
-
-    const pathData = `M ${head.x} ${head.y} Q ${midX} ${midY} ${tail.x} ${tail.y}`;
-
-    return (
-      <g key={`snake_${start}_${end}`} className="drop-shadow-lg">
-        {/* Outer Snake Body */}
-        <path
-          d={pathData}
-          fill="none"
-          stroke="#059669"
-          strokeWidth="3.2"
-          strokeLinecap="round"
-        />
-        {/* Inner Snake Pattern */}
-        <path
-          d={pathData}
-          fill="none"
-          stroke="#34D399"
-          strokeWidth="1.4"
-          strokeDasharray="1.5 1.5"
-          strokeLinecap="round"
-        />
-        {/* Snake Head at Start */}
-        <circle cx={head.x} cy={head.y} r="2.2" fill="#047857" />
-        <circle cx={head.x - 0.6} cy={head.y - 0.6} r="0.6" fill="#FFFFFF" />
-        <circle cx={head.x + 0.6} cy={head.y - 0.6} r="0.6" fill="#FFFFFF" />
-        {/* Snake Tongue */}
-        <line x1={head.x} y1={head.y} x2={head.x} y2={head.y - 2.5} stroke="#EF4444" strokeWidth="0.6" />
-      </g>
-    );
-  };
+    return () => {
+      Object.values(animationTimersRef.current).forEach(timer => clearInterval(timer));
+    };
+  }, [gameState?.players]);
 
   return (
-    <div className="relative w-full aspect-square bg-amber-50 border-[6px] sm:border-[10px] border-amber-200 rounded-3xl shadow-2xl overflow-hidden select-none ring-4 ring-amber-400/40">
+    <div className="relative w-full aspect-square border-4 border-[#3F2B1D] rounded-lg shadow-2xl overflow-hidden select-none bg-[#050807]">
       
-      {/* 10x10 Colorful Physical Grid */}
-      <div className="grid grid-cols-10 grid-rows-10 w-full h-full">
-        {gridRows.map((row, rIdx) =>
-          row.map((sqNum) => {
-            const colorIdx = (sqNum - 1) % SQUARE_COLORS.length;
-            const bgColor = SQUARE_COLORS[colorIdx];
-            const is100 = sqNum === 100;
+      {/* Vintage Physical Board Image Background */}
+      <img
+        src="/assets/boards/snake-ladder-vintage.jpg"
+        alt="Vintage Snake & Ladder Board"
+        className="w-full h-full object-contain pointer-events-none"
+      />
 
-            return (
-              <div
-                key={sqNum}
-                style={{ backgroundColor: is100 ? '#F59E0B' : bgColor }}
-                className={`relative flex items-start justify-start p-1 border-[0.5px] border-slate-900/10 transition-colors ${
-                  is100 ? 'ring-2 ring-amber-400 shadow-inner' : ''
-                }`}
-              >
-                {/* Cell Number Badge */}
-                <span
-                  className={`font-black text-[9px] sm:text-xs font-game leading-none shadow-sm drop-shadow ${
-                    is100 ? 'text-slate-950 text-sm animate-pulse' : 'text-slate-900/80'
-                  }`}
-                >
-                  {sqNum === 100 ? '🏆 100' : sqNum}
-                </span>
-              </div>
-            );
-          })
-        )}
+      {/* Transparent 10x10 Logical Interactive Grid Overlay */}
+      <div className="absolute inset-0 grid grid-cols-10 grid-rows-10 w-full h-full pointer-events-none">
+        {Array.from({ length: 100 }).map((_, idx) => (
+          <div key={idx} className="border-[0.5px] border-black/10" />
+        ))}
       </div>
 
-      {/* SVG Layer for Illustrated Snakes & Ladders */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none z-10"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-      >
-        {/* Ladders */}
-        {Object.entries(ladders).map(([start, end]) => renderLadder(start, end))}
+      {/* Interactive Vintage Carved Wooden Pawns Layer */}
+      {gameState?.players?.map((player, pIdx) => {
+        const displayPos = animatedPositions[player.id] !== undefined ? animatedPositions[player.id] : (player.position || 1);
+        const coords = getCenterCoords(displayPos);
 
-        {/* Snakes */}
-        {Object.entries(snakes).map(([start, end]) => renderSnake(start, end))}
-      </svg>
-
-      {/* Interactive Player Tokens Overlay Layer */}
-      {gameState?.players?.map((player) => {
-        const pos = player.position || 1;
-        const coords = getCenterCoords(pos);
-
-        // Calculate offset for overlapping tokens on the same square
-        const sameSquarePlayers = gameState.players.filter((p) => (p.position || 1) === pos);
-        const playerOffsetIdx = sameSquarePlayers.findIndex((p) => p.id === player.id);
+        // Offset overlapping pawns on the same square
+        const samePosPlayers = gameState.players.filter(p => (animatedPositions[p.id] || p.position || 1) === displayPos);
+        const offsetIdx = samePosPlayers.findIndex(p => p.id === player.id);
         const offsets = [
-          { dx: -2.2, dy: -2.2 },
-          { dx: 2.2, dy: -2.2 },
-          { dx: -2.2, dy: 2.2 },
-          { dx: 2.2, dy: 2.2 },
+          { dx: -2.0, dy: -2.0 },
+          { dx: 2.0, dy: -2.0 },
+          { dx: -2.0, dy: 2.0 },
+          { dx: 2.0, dy: 2.0 },
         ];
-        const offset = offsets[playerOffsetIdx % offsets.length] || { dx: 0, dy: 0 };
+        const offset = offsets[offsetIdx % offsets.length] || { dx: 0, dy: 0 };
 
         const finalX = coords.x + offset.dx;
         const finalY = coords.y + offset.dy;
 
-        const tokenColor = player.color || '#EF4444';
+        const pawnStyle = PAWN_STYLES[pIdx % PAWN_STYLES.length];
 
         return (
           <div
             key={player.id}
-            className="absolute transition-all duration-500 ease-in-out z-20 flex items-center justify-center -translate-x-1/2 -translate-y-1/2"
+            className="absolute transition-all duration-300 ease-out z-30 flex flex-col items-center justify-center -translate-x-1/2 -translate-y-1/2"
             style={{ left: `${finalX}%`, top: `${finalY}%` }}
           >
-            {/* 3D Circular Token */}
+            {/* Vintage Carved Wooden Pawn */}
             <div
-              className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white shadow-xl flex items-center justify-center font-black text-[10px] sm:text-xs text-white transform hover:scale-125 transition-transform"
-              style={{
-                backgroundColor: tokenColor,
-                boxShadow: `0 4px 10px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.4)`,
-              }}
-              title={`${player.username} (Square: ${pos})`}
+              className="relative w-7 h-9 sm:w-9 sm:h-11 flex flex-col items-center justify-end drop-shadow-2xl group transition-transform transform hover:scale-125"
+              title={`${player.username} (Square: ${displayPos})`}
             >
-              {player.username.charAt(0).toUpperCase()}
+              {/* Pawn Head Knob */}
+              <div
+                className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-black/40 shadow-inner mb-[-2px] z-10"
+                style={{
+                  background: `radial-gradient(circle at 35% 35%, ${pawnStyle.border}, ${pawnStyle.main}, ${pawnStyle.dark})`,
+                }}
+              />
+              {/* Pawn Tapered Body */}
+              <div
+                className="w-4 h-5 sm:w-5 sm:h-6 rounded-t-full border border-black/40 shadow-md flex items-center justify-center"
+                style={{
+                  background: `linear-gradient(to bottom, ${pawnStyle.main}, ${pawnStyle.dark})`,
+                }}
+              >
+                <span className="text-[8px] sm:text-[9px] font-black text-white/90 drop-shadow font-mono">
+                  {pawnStyle.label}
+                </span>
+              </div>
+              {/* Pawn Metallic Base Ring */}
+              <div
+                className="w-5 h-1.5 sm:w-6 sm:h-2 rounded-full border border-black/60 shadow-lg"
+                style={{
+                  background: `linear-gradient(to right, #D97706, #FBBF24, #92400E)`,
+                }}
+              />
             </div>
           </div>
         );

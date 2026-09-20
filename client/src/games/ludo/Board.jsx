@@ -1,58 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const COMMON_TRACK_COORDS = [
-  { r: 6, c: 1 },  // 0 Red Start (Safe Star)
-  { r: 6, c: 2 },  // 1
-  { r: 6, c: 3 },  // 2
-  { r: 6, c: 4 },  // 3
-  { r: 6, c: 5 },  // 4
-  { r: 5, c: 6 },  // 5
-  { r: 4, c: 6 },  // 6
-  { r: 3, c: 6 },  // 7
-  { r: 2, c: 6 },  // 8 Star
-  { r: 1, c: 6 },  // 9
-  { r: 0, c: 6 },  // 10
-  { r: 0, c: 7 },  // 11
-  { r: 0, c: 8 },  // 12
-  { r: 1, c: 8 },  // 13 Green Start (Safe Star)
-  { r: 2, c: 8 },  // 14
-  { r: 3, c: 8 },  // 15
-  { r: 4, c: 8 },  // 16
-  { r: 5, c: 8 },  // 17
-  { r: 6, c: 9 },  // 18
-  { r: 6, c: 10 }, // 19
-  { r: 6, c: 11 }, // 20
-  { r: 6, c: 12 }, // 21 Star
-  { r: 6, c: 13 }, // 22
-  { r: 6, c: 14 }, // 23
-  { r: 7, c: 14 }, // 24
-  { r: 8, c: 14 }, // 25
-  { r: 8, c: 13 }, // 26 Yellow Start (Safe Star)
-  { r: 8, c: 12 }, // 27
-  { r: 8, c: 11 }, // 28
-  { r: 8, c: 10 }, // 29
-  { r: 8, c: 9 },  // 30
-  { r: 9, c: 8 },  // 31
-  { r: 10, c: 8 }, // 32
-  { r: 11, c: 8 }, // 33
-  { r: 12, c: 8 }, // 34 Star
-  { r: 13, c: 8 }, // 35
-  { r: 14, c: 8 }, // 36
-  { r: 14, c: 7 }, // 37
-  { r: 14, c: 6 }, // 38
-  { r: 13, c: 6 }, // 39 Blue Start (Safe Star)
-  { r: 12, c: 6 }, // 40
-  { r: 11, c: 6 }, // 41
-  { r: 10, c: 6 }, // 42
-  { r: 9, c: 6 },  // 43
-  { r: 8, c: 5 },  // 44
-  { r: 8, c: 4 },  // 45
-  { r: 8, c: 3 },  // 46
-  { r: 8, c: 2 },  // 47 Star
-  { r: 8, c: 1 },  // 48
-  { r: 8, c: 0 },  // 49
-  { r: 7, c: 0 },  // 50
-  { r: 6, c: 0 },  // 51
+  { r: 6, c: 1 },  // 0 Red Start
+  { r: 6, c: 2 },  { r: 6, c: 3 },  { r: 6, c: 4 },  { r: 6, c: 5 },
+  { r: 5, c: 6 },  { r: 4, c: 6 },  { r: 3, c: 6 },  { r: 2, c: 6 },  { r: 1, c: 6 },  { r: 0, c: 6 },
+  { r: 0, c: 7 },  { r: 0, c: 8 },
+  { r: 1, c: 8 },  // 13 Green Start
+  { r: 2, c: 8 },  { r: 3, c: 8 },  { r: 4, c: 8 },  { r: 5, c: 8 },
+  { r: 6, c: 9 },  { r: 6, c: 10 }, { r: 6, c: 11 }, { r: 6, c: 12 }, { r: 6, c: 13 }, { r: 6, c: 14 },
+  { r: 7, c: 14 }, { r: 8, c: 14 },
+  { r: 8, c: 13 }, // 26 Yellow Start
+  { r: 8, c: 12 }, { r: 8, c: 11 }, { r: 8, c: 10 }, { r: 8, c: 9 },
+  { r: 9, c: 8 },  { r: 10, c: 8 }, { r: 11, c: 8 }, { r: 12, c: 8 }, { r: 13, c: 8 }, { r: 14, c: 8 },
+  { r: 14, c: 7 }, { r: 14, c: 6 },
+  { r: 13, c: 6 }, // 39 Blue Start
+  { r: 12, c: 6 }, { r: 11, c: 6 }, { r: 10, c: 6 }, { r: 9, c: 6 },
+  { r: 8, c: 5 },  { r: 8, c: 4 },  { r: 8, c: 3 },  { r: 8, c: 2 },  { r: 8, c: 1 },  { r: 8, c: 0 },
+  { r: 7, c: 0 },  { r: 6, c: 0 },
 ];
 
 const HOME_PATH_COORDS = {
@@ -70,17 +34,25 @@ const HOME_FINAL_COORDS = {
 };
 
 const YARD_TOKEN_SLOTS = {
-  0: [ { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 3, c: 2 }, { r: 3, c: 3 } ], // Red (Top-Left)
-  1: [ { r: 2, c: 11 }, { r: 2, c: 12 }, { r: 3, c: 11 }, { r: 3, c: 12 } ], // Green (Top-Right)
-  2: [ { r: 12, c: 11 }, { r: 12, c: 12 }, { r: 11, c: 11 }, { r: 11, c: 12 } ], // Yellow (Bottom-Right)
-  3: [ { r: 12, c: 2 }, { r: 12, c: 3 }, { r: 11, c: 2 }, { r: 11, c: 3 } ], // Blue (Bottom-Left)
+  0: [ { r: 2, c: 2 }, { r: 2, c: 3 }, { r: 3, c: 2 }, { r: 3, c: 3 } ],
+  1: [ { r: 2, c: 11 }, { r: 2, c: 12 }, { r: 3, c: 11 }, { r: 3, c: 12 } ],
+  2: [ { r: 12, c: 11 }, { r: 12, c: 12 }, { r: 11, c: 11 }, { r: 11, c: 12 } ],
+  3: [ { r: 12, c: 2 }, { r: 12, c: 3 }, { r: 11, c: 2 }, { r: 11, c: 3 } ],
 };
 
-export const Board = ({ gameState, onTokenClick, isMyTurn }) => {
-  const currentPlayer = gameState?.currentPlayer;
-  const validMoves = gameState?.validMoves || [];
+const TOKEN_PAWN_STYLES = {
+  0: { main: '#991B1B', dark: '#450A0A', border: '#FCA5A5', label: 'R' }, // Red
+  1: { main: '#065F46', dark: '#022C22', border: '#6EE7B7', label: 'G' }, // Green
+  2: { main: '#B45309', dark: '#451A03', border: '#FDE68A', label: 'Y' }, // Yellow
+  3: { main: '#1E40AF', dark: '#172554', border: '#93C5FD', label: 'B' }, // Blue
+};
 
-  // Convert step (0..56) to (row, col)
+export const Board = ({ gameState, onTokenClick, validMoves = [] }) => {
+  const [animatedSteps, setAnimatedSteps] = useState({});
+  const animationTimersRef = useRef({});
+
+  const currentPlayer = gameState?.currentPlayer;
+
   const getTokenCoords = (colorIndex, step, tokenIndex) => {
     if (step === -1) {
       return YARD_TOKEN_SLOTS[colorIndex]?.[tokenIndex] || { r: 0, c: 0 };
@@ -97,124 +69,66 @@ export const Board = ({ gameState, onTokenClick, isMyTurn }) => {
     return HOME_FINAL_COORDS[colorIndex] || { r: 7, c: 7 };
   };
 
-  // Build grid cell elements for 15x15 Ludo board
-  const cells = [];
-  for (let r = 0; r < 15; r++) {
-    for (let c = 0; c < 15; c++) {
-      let cellColorClass = 'bg-white border-slate-300';
-      let isStar = false;
-      let starColor = 'text-amber-500';
+  // Step-by-step movement animation loop
+  useEffect(() => {
+    if (!gameState?.players) return;
 
-      // Yard Areas (6x6 Corners)
-      if (r < 6 && c < 6) cellColorClass = 'bg-red-50 border-red-200'; // Red Yard Top-Left
-      else if (r < 6 && c > 8) cellColorClass = 'bg-emerald-50 border-emerald-200'; // Green Yard Top-Right
-      else if (r > 8 && c > 8) cellColorClass = 'bg-amber-50 border-amber-200'; // Yellow Yard Bottom-Right
-      else if (r > 8 && c < 6) cellColorClass = 'bg-blue-50 border-blue-200'; // Blue Yard Bottom-Left
+    gameState.players.forEach(player => {
+      player.tokens.forEach((targetStep, tIdx) => {
+        const key = `${player.id}_${tIdx}`;
+        const currentAnimStep = animatedSteps[key] !== undefined ? animatedSteps[key] : targetStep;
 
-      // Center Finish Triangle (3x3)
-      else if (r >= 6 && r <= 8 && c >= 6 && c <= 8) {
-        cellColorClass = 'bg-amber-100 border-amber-300';
-      }
+        if (currentAnimStep !== targetStep) {
+          if (animationTimersRef.current[key]) {
+            clearInterval(animationTimersRef.current[key]);
+          }
 
-      // Colored Home Paths
-      else if (r === 7 && c >= 1 && c <= 5) cellColorClass = 'bg-red-500 border-red-600';
-      else if (c === 7 && r >= 1 && r <= 5) cellColorClass = 'bg-emerald-500 border-emerald-600';
-      else if (r === 7 && c >= 9 && c <= 13) cellColorClass = 'bg-amber-400 border-amber-500';
-      else if (c === 7 && r >= 9 && r <= 13) cellColorClass = 'bg-blue-500 border-blue-600';
+          // If token captured (-1), reset instantly, else step square-by-square
+          if (targetStep === -1) {
+            setAnimatedSteps(prev => ({ ...prev, [key]: -1 }));
+          } else {
+            const stepDir = targetStep > currentAnimStep ? 1 : -1;
+            let curr = currentAnimStep === -1 ? 0 : currentAnimStep;
 
-      // Starting Squares
-      else if (r === 6 && c === 1) { cellColorClass = 'bg-red-500 border-red-600'; isStar = true; starColor = 'text-white'; }
-      else if (r === 1 && c === 8) { cellColorClass = 'bg-emerald-500 border-emerald-600'; isStar = true; starColor = 'text-white'; }
-      else if (r === 8 && c === 13) { cellColorClass = 'bg-amber-400 border-amber-500'; isStar = true; starColor = 'text-white'; }
-      else if (r === 13 && c === 6) { cellColorClass = 'bg-blue-500 border-blue-600'; isStar = true; starColor = 'text-white'; }
+            animationTimersRef.current[key] = setInterval(() => {
+              curr += stepDir;
+              setAnimatedSteps(prev => ({ ...prev, [key]: curr }));
 
-      // Safe Star Squares
-      const isSafeStar = COMMON_TRACK_COORDS.some(
-        (coord, idx) => [8, 21, 34, 47].includes(idx) && coord.r === r && coord.c === c
-      );
-      if (isSafeStar) isStar = true;
+              if (curr === targetStep) {
+                clearInterval(animationTimersRef.current[key]);
+              }
+            }, 180);
+          }
+        }
+      });
+    });
 
-      cells.push(
-        <div
-          key={`${r}_${c}`}
-          className={`relative border-[0.5px] flex items-center justify-center ${cellColorClass}`}
-        >
-          {isStar && <span className={`text-[10px] sm:text-xs drop-shadow ${starColor}`}>⭐</span>}
-        </div>
-      );
-    }
-  }
+    return () => {
+      Object.values(animationTimersRef.current).forEach(timer => clearInterval(timer));
+    };
+  }, [gameState?.players]);
 
   return (
-    <div className="relative w-full aspect-square bg-amber-50 border-[6px] sm:border-[10px] border-amber-200 rounded-3xl shadow-2xl overflow-hidden select-none ring-4 ring-amber-400/40">
+    <div className="relative w-full aspect-square border-4 border-[#3F2B1D] rounded-lg shadow-2xl overflow-hidden select-none bg-[#050807]">
       
-      {/* 15x15 Physical Ludo Board Grid */}
-      <div className="grid grid-cols-15 grid-rows-15 w-full h-full">
-        {cells}
-      </div>
+      {/* Vintage Physical Ludo Board Image Background */}
+      <img
+        src="/assets/boards/ludo-vintage.jpg"
+        alt="Vintage Ludo / Parcheesi Board"
+        className="w-full h-full object-contain pointer-events-none"
+      />
 
-      {/* Illustrated Yard Quadrant Boxes */}
-      {/* Red Yard (Top-Left) */}
-      <div className="absolute top-[3.3%] left-[3.3%] w-[33.3%] h-[33.3%] border-4 border-red-500 rounded-2xl bg-red-500/20 shadow-inner flex items-center justify-center">
-        <div className="grid grid-cols-2 grid-rows-2 gap-3 w-3/4 h-3/4 p-2 bg-white/90 rounded-xl shadow">
-          <div className="rounded-full bg-red-100 border-2 border-red-400" />
-          <div className="rounded-full bg-red-100 border-2 border-red-400" />
-          <div className="rounded-full bg-red-100 border-2 border-red-400" />
-          <div className="rounded-full bg-red-100 border-2 border-red-400" />
-        </div>
-      </div>
-
-      {/* Green Yard (Top-Right) */}
-      <div className="absolute top-[3.3%] right-[3.3%] w-[33.3%] h-[33.3%] border-4 border-emerald-500 rounded-2xl bg-emerald-500/20 shadow-inner flex items-center justify-center">
-        <div className="grid grid-cols-2 grid-rows-2 gap-3 w-3/4 h-3/4 p-2 bg-white/90 rounded-xl shadow">
-          <div className="rounded-full bg-emerald-100 border-2 border-emerald-400" />
-          <div className="rounded-full bg-emerald-100 border-2 border-emerald-400" />
-          <div className="rounded-full bg-emerald-100 border-2 border-emerald-400" />
-          <div className="rounded-full bg-emerald-100 border-2 border-emerald-400" />
-        </div>
-      </div>
-
-      {/* Yellow Yard (Bottom-Right) */}
-      <div className="absolute bottom-[3.3%] right-[3.3%] w-[33.3%] h-[33.3%] border-4 border-amber-400 rounded-2xl bg-amber-400/20 shadow-inner flex items-center justify-center">
-        <div className="grid grid-cols-2 grid-rows-2 gap-3 w-3/4 h-3/4 p-2 bg-white/90 rounded-xl shadow">
-          <div className="rounded-full bg-amber-100 border-2 border-amber-400" />
-          <div className="rounded-full bg-amber-100 border-2 border-amber-400" />
-          <div className="rounded-full bg-amber-100 border-2 border-amber-400" />
-          <div className="rounded-full bg-amber-100 border-2 border-amber-400" />
-        </div>
-      </div>
-
-      {/* Blue Yard (Bottom-Left) */}
-      <div className="absolute bottom-[3.3%] left-[3.3%] w-[33.3%] h-[33.3%] border-4 border-blue-500 rounded-2xl bg-blue-500/20 shadow-inner flex items-center justify-center">
-        <div className="grid grid-cols-2 grid-rows-2 gap-3 w-3/4 h-3/4 p-2 bg-white/90 rounded-xl shadow">
-          <div className="rounded-full bg-blue-100 border-2 border-blue-400" />
-          <div className="rounded-full bg-blue-100 border-2 border-blue-400" />
-          <div className="rounded-full bg-blue-100 border-2 border-blue-400" />
-          <div className="rounded-full bg-blue-100 border-2 border-blue-400" />
-        </div>
-      </div>
-
-      {/* Central Finishing Home Area */}
-      <div className="absolute top-[40%] left-[40%] w-[20%] h-[20%] bg-white border-2 border-amber-400 rounded-xl flex items-center justify-center shadow-md">
-        <div className="w-full h-full relative overflow-hidden rounded-lg flex items-center justify-center">
-          <span className="text-xl sm:text-2xl drop-shadow">🏆</span>
-        </div>
-      </div>
-
-      {/* Interactive 3D Player Tokens Layer */}
+      {/* Interactive Player Tokens Layer */}
       {gameState?.players?.map((player) => {
-        const colorHexMap = {
-          0: '#EF4444', // Red
-          1: '#10B981', // Green
-          2: '#F59E0B', // Yellow
-          3: '#3B82F6', // Blue
-        };
-        const colorHex = colorHexMap[player.colorIndex] || '#8B5CF6';
+        const colorIdx = player.colorIndex;
+        const pawnStyle = TOKEN_PAWN_STYLES[colorIdx] || TOKEN_PAWN_STYLES[0];
 
-        return player.tokens.map((step, tIdx) => {
-          const coords = getTokenCoords(player.colorIndex, step, tIdx);
+        return player.tokens.map((realStep, tIdx) => {
+          const key = `${player.id}_${tIdx}`;
+          const displayStep = animatedSteps[key] !== undefined ? animatedSteps[key] : realStep;
+          const coords = getTokenCoords(colorIdx, displayStep, tIdx);
+
           const isEligibleToMove =
-            isMyTurn &&
             currentPlayer?.id === player.id &&
             gameState?.hasRolled &&
             validMoves.includes(tIdx);
@@ -225,27 +139,50 @@ export const Board = ({ gameState, onTokenClick, isMyTurn }) => {
 
           return (
             <button
-              key={`${player.id}_token_${tIdx}`}
-              onClick={() => isEligibleToMove && onTokenClick(tIdx)}
+              key={key}
+              onClick={() => isEligibleToMove && onTokenClick && onTokenClick(tIdx)}
               disabled={!isEligibleToMove}
               style={{
                 left: `${leftPct}%`,
                 top: `${topPct}%`,
-                backgroundColor: colorHex,
-                boxShadow: `0 3px 8px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.4)`,
               }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 w-[5.5%] h-[5.5%] rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-all duration-300 z-30 ${
+              className={`absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-300 z-30 flex flex-col items-center justify-center ${
                 isEligibleToMove
-                  ? 'ring-4 ring-amber-300 ring-offset-2 ring-offset-amber-50 scale-125 animate-pulse cursor-pointer'
+                  ? 'scale-125 z-40 cursor-pointer animate-pulse'
                   : ''
               }`}
-              title={`Token #${tIdx + 1} (${player.username})`}
+              title={`${player.username} (Token ${pawnStyle.label}${tIdx + 1})`}
             >
-              <span className="text-[9px] font-black text-white">{tIdx + 1}</span>
+              {/* Vintage Carved Wooden Counter Pawn */}
+              <div className="relative w-5 h-7 sm:w-7 sm:h-9 flex flex-col items-center justify-end drop-shadow-xl">
+                <div
+                  className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border border-black/40 shadow-inner mb-[-2px] z-10"
+                  style={{
+                    background: `radial-gradient(circle at 35% 35%, ${pawnStyle.border}, ${pawnStyle.main}, ${pawnStyle.dark})`,
+                  }}
+                />
+                <div
+                  className="w-3.5 h-4 sm:w-5 sm:h-5 rounded-t-full border border-black/40 shadow-md flex items-center justify-center"
+                  style={{
+                    background: `linear-gradient(to bottom, ${pawnStyle.main}, ${pawnStyle.dark})`,
+                  }}
+                >
+                  <span className="text-[7px] sm:text-[9px] font-black text-white/90 font-mono">
+                    {pawnStyle.label}{tIdx + 1}
+                  </span>
+                </div>
+                <div
+                  className="w-4 h-1 sm:w-5 sm:h-1.5 rounded-full border border-black/60 shadow-md"
+                  style={{
+                    background: `linear-gradient(to right, #D97706, #FBBF24, #92400E)`,
+                  }}
+                />
+              </div>
             </button>
           );
         });
       })}
+
     </div>
   );
 };

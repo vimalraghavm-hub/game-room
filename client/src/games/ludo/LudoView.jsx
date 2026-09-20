@@ -1,18 +1,14 @@
 import React, { useEffect } from 'react';
 import { Board } from './Board';
 import { DiceRoller } from '../../components/DiceRoller';
-import { PlayerAvatar } from '../../components/PlayerAvatar';
 import { useSocket } from '../../context/SocketContext';
 import confetti from 'canvas-confetti';
-import { Trophy, History, ShieldAlert } from 'lucide-react';
 
 export const LudoView = ({ roomState }) => {
   const { gameState, rollDice, moveToken, socket } = useSocket();
-
   const currentPlayer = gameState?.currentPlayer;
   const isMyTurn = socket && currentPlayer && currentPlayer.id === socket.id;
 
-  // Trigger confetti when game ends with winner
   useEffect(() => {
     if (gameState?.status === 'FINISHED' && gameState?.winner) {
       confetti({
@@ -42,75 +38,57 @@ export const LudoView = ({ roomState }) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6 font-mono text-[var(--text)]">
       
-      {/* Ludo Board Column */}
-      <div className="lg:col-span-2 flex flex-col items-center">
+      {/* Main Board Column */}
+      <div className="lg:col-span-2 flex flex-col items-center space-y-2">
+        <div className="term-box w-full p-2 text-[10px] font-bold text-[var(--accent)] flex items-center justify-between">
+          <span>[ GAME_02 // VINTAGE PARCHEESI / LUDO BOARD ]</span>
+          <span>GRID: 15x15 // ASSET: VINTAGE_02</span>
+        </div>
         <Board
           gameState={gameState}
           onTokenClick={handleTokenClick}
-          isMyTurn={isMyTurn}
+          validMoves={gameState?.validMoves || []}
         />
       </div>
 
-      {/* Control Side Panel */}
-      <div className="flex flex-col gap-6">
+      {/* Side Control Panel */}
+      <div className="flex flex-col gap-4">
         
-        {/* Turn Status Banner */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl text-center relative overflow-hidden">
+        {/* Turn Status Panel */}
+        <div className="term-box p-4 text-center">
           {gameState?.status === 'FINISHED' ? (
-            <div className="space-y-2">
-              <Trophy className="w-12 h-12 text-amber-400 mx-auto animate-bounce" />
-              <h3 className="text-xl font-black text-amber-400">
-                🏆 {gameState?.winner?.username} WINS LUDO!
+            <div className="space-y-1">
+              <div className="text-xl">🏆</div>
+              <h3 className="text-sm font-bold text-[var(--accent)]">
+                {gameState?.winner?.username.toUpperCase()} WINS LUDO!
               </h3>
-              <p className="text-xs text-slate-400">Match completed successfully.</p>
+              <p className="text-[10px] opacity-70">// MATCH COMPLETED</p>
             </div>
           ) : (
             <div className="space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Current Turn
-              </span>
-              <div className="flex items-center justify-center gap-3">
-                <img
-                  src={currentPlayer?.avatar}
-                  alt={currentPlayer?.username}
-                  className="w-10 h-10 rounded-full border-2 border-purple-500 bg-slate-950"
-                />
-                <span className="text-lg font-black text-slate-100">
-                  {currentPlayer?.username}
-                </span>
-                <span
-                  className="text-xs font-bold px-2 py-0.5 rounded text-white"
-                  style={{ backgroundColor: currentPlayer?.colorHex || '#EF4444' }}
-                >
-                  {currentPlayer?.color}
-                </span>
+              <div className="text-[10px] uppercase font-bold opacity-70">CURRENT TURN</div>
+              <div className="flex items-center justify-center gap-2 text-xs font-bold text-[var(--accent)]">
+                <span>{currentPlayer?.avatar || '👤'}</span>
+                <span>{currentPlayer?.username} ({currentPlayer?.color})</span>
               </div>
 
               {isMyTurn ? (
-                <div className="space-y-1">
-                  {!gameState?.hasRolled ? (
-                    <span className="inline-block bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/40 animate-pulse">
-                      Roll the Dice 🎲
-                    </span>
-                  ) : (
-                    <span className="inline-block bg-amber-500/20 text-amber-400 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/40 animate-bounce">
-                      Select a highlighted token to move! ♟️
-                    </span>
-                  )}
+                <div className="text-[10px] font-bold text-[var(--accent)] border border-[var(--text)] bg-[var(--border)] py-1 animate-pulse">
+                  {!gameState?.hasRolled ? '[ ROLL DICE ]' : '[ SELECT TOKEN TO MOVE ]'}
                 </div>
               ) : (
-                <span className="inline-block bg-slate-800 text-slate-400 text-xs font-semibold px-3 py-1 rounded-full">
-                  Waiting for {currentPlayer?.username}...
-                </span>
+                <div className="text-[10px] opacity-60 py-1">
+                  WAITING FOR {currentPlayer?.username?.toUpperCase()}...
+                </div>
               )}
             </div>
           )}
         </div>
 
         {/* Dice Roller */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center">
+        <div className="term-box p-4 flex flex-col items-center justify-center">
           <DiceRoller
             value={gameState?.diceValue}
             onRoll={handleRollDice}
@@ -119,33 +97,26 @@ export const LudoView = ({ roomState }) => {
           />
         </div>
 
-        {/* Players List */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Players ({gameState?.players?.length || 0})
-          </h4>
-          <div className="space-y-2 max-h-[220px] overflow-y-auto">
-            {gameState?.players?.map((p) => (
-              <PlayerAvatar
+        {/* Players Token Progress */}
+        <div className="term-box p-4 space-y-2 text-xs">
+          <div className="font-bold text-[var(--accent)] border-b border-[var(--border)] pb-1 text-[11px]">
+            [ PLAYERS & TOKEN PROGRESS ]
+          </div>
+          <div className="space-y-1.5">
+            {gameState?.players?.map((p, idx) => (
+              <div
                 key={p.id}
-                player={p}
-                isCurrentTurn={currentPlayer?.id === p.id}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Game Log Feed */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl flex-1 flex flex-col min-h-[180px]">
-          <div className="flex items-center gap-2 mb-2 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-800 pb-2">
-            <History className="w-4 h-4 text-purple-400" />
-            Ludo Action Log
-          </div>
-          <div className="flex-1 overflow-y-auto space-y-2 text-xs max-h-[160px]">
-            {gameState?.gameLog?.slice().reverse().map((log) => (
-              <div key={log.id} className="text-slate-300 flex items-start gap-2">
-                <span className="text-[10px] text-slate-500 mt-0.5">{log.timestamp}</span>
-                <span className="flex-1">{log.message}</span>
+                className={`p-2 border flex items-center justify-between text-[11px] ${
+                  currentPlayer?.id === p.id ? 'border-[var(--text)] bg-[var(--bg)] font-bold' : 'border-[var(--border)] opacity-80'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span>{p.avatar || '👤'}</span>
+                  <span>{p.username} ({p.color})</span>
+                </div>
+                <span className="font-mono text-[var(--accent)]">
+                  HOME: {p.tokens.filter(t => t === 56).length}/4
+                </span>
               </div>
             ))}
           </div>
