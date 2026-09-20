@@ -2,27 +2,127 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply bg-slate-950 text-slate-100 min-h-screen overflow-x-hidden;
-  }
+:root {
+  --bg: #050807;
+  --panel-bg: #08100D;
+  --text: #57FFB0;
+  --border: #1E6E55;
+  --accent: #A7FFD7;
 }
 
-/* Custom scrollbars */
+[data-theme="CRT"] {
+  --bg: #050807;
+  --panel-bg: #08100D;
+  --text: #57FFB0;
+  --border: #1E6E55;
+  --accent: #A7FFD7;
+}
+
+[data-theme="PURPLE"] {
+  --bg: #09050F;
+  --panel-bg: #120A1F;
+  --text: #D8B4FE;
+  --border: #6B21A8;
+  --accent: #F3E8FF;
+}
+
+[data-theme="AMBER"] {
+  --bg: #0B0702;
+  --panel-bg: #170E04;
+  --text: #F59E0B;
+  --border: #78350F;
+  --accent: #FDE68A;
+}
+
+[data-theme="MONO"] {
+  --bg: #0A0A0A;
+  --panel-bg: #121212;
+  --text: #E5E5E5;
+  --border: #404040;
+  --accent: #FFFFFF;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Technical Terminal Box Styling */
+.term-box {
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.term-button {
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 4px;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.term-button:hover:not(:disabled) {
+  background-color: var(--border);
+  color: var(--accent);
+  box-shadow: 0 0 10px var(--border);
+}
+
+.term-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* CRT Scanlines Overlay */
+.crt-scanlines::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  z-index: 99;
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* 3D Card Flip Animation Utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.5);
-  border-radius: 9999px;
+  background: var(--border);
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.8);
+  background: var(--text);
 }

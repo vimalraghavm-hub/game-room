@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
-import { Users, KeyRound, Lock, ShieldAlert, ArrowRight } from 'lucide-react';
 
 export const JoinRoomPage = () => {
   const { codeParam } = useParams();
@@ -40,65 +39,56 @@ export const JoinRoomPage = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-12">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+    <div className="max-w-md mx-auto px-4 py-12 font-mono text-[var(--text)]">
+      <div className="term-box p-6 space-y-6">
         
-        <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-cyan-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-cyan-500/40">
-            <Users className="w-7 h-7 text-cyan-400" />
-          </div>
-          <h2 className="text-3xl font-black text-white">Join Game Room</h2>
-          <p className="text-slate-400 text-sm mt-1">Enter your friend's 5-character Room Code</p>
+        {/* Header */}
+        <div className="border-b border-[var(--border)] pb-3 flex items-center justify-between">
+          <span className="font-bold text-sm text-[var(--accent)]">[ AUTHENTICATION // JOIN ROOM ]</span>
+          <span className="text-xs opacity-70">STATUS: READY</span>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-2xl bg-red-950/60 border border-red-500/40 flex items-center gap-3 text-red-300 text-sm">
-            <ShieldAlert className="w-5 h-5 flex-shrink-0" />
-            <span>{error}</span>
+          <div className="p-3 border border-red-500 bg-red-950/60 text-red-300 text-xs">
+            [ERROR]: {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5 text-xs">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-              Room Code (e.g. AB7KQ)
+            <label className="block text-[10px] uppercase font-bold tracking-wider mb-2 opacity-70">
+              01 // ROOM CODE (E.G. H7K9Q)
             </label>
-            <div className="relative">
-              <KeyRound className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input
-                type="text"
-                required
-                maxLength={10}
-                value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                placeholder="AB7KQ"
-                className="w-full bg-slate-950 text-cyan-300 font-mono font-black text-xl tracking-widest pl-11 pr-4 py-3.5 rounded-xl border border-slate-800 uppercase focus:outline-none focus:border-cyan-500"
-              />
-            </div>
+            <input
+              type="text"
+              required
+              maxLength={10}
+              value={roomCode}
+              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+              placeholder="H7K9Q"
+              className="w-full bg-[var(--bg)] text-[var(--accent)] font-mono font-black text-xl tracking-widest p-3 border border-[var(--border)] uppercase focus:outline-none focus:border-[var(--text)]"
+            />
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-              Room Password (If Private)
+            <label className="block text-[10px] uppercase font-bold tracking-wider mb-2 opacity-70">
+              02 // ROOM PASSCODE (IF PRIVATE)
             </label>
-            <div className="relative">
-              <Lock className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Optional password"
-                className="w-full bg-slate-950 text-white text-sm pl-11 pr-4 py-3 rounded-xl border border-slate-800 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="OPTIONAL PASSCODE"
+              className="w-full bg-[var(--bg)] text-[var(--text)] text-xs p-3 border border-[var(--border)] focus:outline-none focus:border-[var(--text)]"
+            />
           </div>
 
           <button
             type="submit"
             disabled={loading || !roomCode.trim()}
-            className="w-full py-4 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-extrabold text-lg shadow-lg shadow-cyan-600/30 transition-all hover:scale-[1.02] flex items-center justify-center gap-2 disabled:opacity-50"
+            className="term-button w-full py-3 text-xs font-bold"
           >
-            {loading ? 'Joining Room...' : 'JOIN ROOM'} <ArrowRight className="w-5 h-5" />
+            {loading ? '[ AUTHENTICATING... ]' : '[ CONNECT TO ROOM ]'}
           </button>
         </form>
 

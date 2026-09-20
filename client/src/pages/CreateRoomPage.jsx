@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
-import { Gamepad2, Lock, Users, ShieldAlert, Sparkles, ArrowRight } from 'lucide-react';
 
 export const CreateRoomPage = () => {
   const [searchParams] = useSearchParams();
@@ -12,6 +11,8 @@ export const CreateRoomPage = () => {
 
   const [gameType, setGameType] = useState(initialGame);
   const [maxPlayers, setMaxPlayers] = useState(4);
+  const [startingHandSize, setStartingHandSize] = useState(7);
+  const [turnTimerDuration, setTurnTimerDuration] = useState(30);
   const [isPrivate, setIsPrivate] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -27,6 +28,8 @@ export const CreateRoomPage = () => {
         isPrivate,
         password,
         maxPlayers: Number(maxPlayers),
+        startingHandSize: Number(startingHandSize),
+        turnTimerDuration: Number(turnTimerDuration),
       });
 
       if (res?.roomCode) {
@@ -36,141 +39,164 @@ export const CreateRoomPage = () => {
         setLoading(false);
       }
     } catch (err) {
-      setError(err.message || 'Unable to create room. Please check connection and try again.');
+      setError(err.message || 'Unable to create room. Please check connection.');
       setLoading(false);
     }
   };
 
+  const isUnoGame = gameType === 'UNO' || gameType === 'UNO_FLIP';
+
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+    <div className="max-w-3xl mx-auto px-4 py-8 font-mono text-[var(--text)]">
+      <div className="term-box p-6 space-y-6">
         
-        <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-purple-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-purple-500/40">
-            <Gamepad2 className="w-7 h-7 text-purple-400" />
-          </div>
-          <h2 className="text-3xl font-black text-white">Create Game Room</h2>
-          <p className="text-slate-400 text-sm mt-1">Configure your room settings and invite your friends</p>
+        {/* Header */}
+        <div className="border-b border-[var(--border)] pb-3 flex items-center justify-between">
+          <span className="font-bold text-sm text-[var(--accent)]">[ CONFIGURATION // CREATE ROOM ]</span>
+          <span className="text-xs opacity-70">SYSTEM READY</span>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-2xl bg-red-950/60 border border-red-500/40 flex items-center gap-3 text-red-300 text-sm">
-            <ShieldAlert className="w-5 h-5 flex-shrink-0" />
-            <span>{error}</span>
+          <div className="p-3 border border-red-500 bg-red-950/60 text-red-300 text-xs">
+            [ERROR]: {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6 text-xs">
           
           {/* Select Game */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-              1. Choose Game
+            <label className="block text-[10px] uppercase font-bold tracking-wider mb-2 opacity-70">
+              01 // SELECT GAME MODULE
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <button
-                type="button"
-                onClick={() => setGameType('SNAKE_LADDER')}
-                className={`p-4 rounded-2xl border-2 text-left flex flex-col justify-between transition-all ${
-                  gameType === 'SNAKE_LADDER'
-                    ? 'bg-purple-950/60 border-purple-500 ring-2 ring-purple-500/40 shadow-lg'
-                    : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
-                }`}
-              >
-                <span className="text-3xl mb-2">🎲</span>
-                <div>
-                  <h4 className="font-extrabold text-white text-sm">Snake & Ladder</h4>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Classic 100 climb</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setGameType('LUDO')}
-                className={`p-4 rounded-2xl border-2 text-left flex flex-col justify-between transition-all ${
-                  gameType === 'LUDO'
-                    ? 'bg-blue-950/60 border-blue-500 ring-2 ring-blue-500/40 shadow-lg'
-                    : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
-                }`}
-              >
-                <span className="text-3xl mb-2">🟢</span>
-                <div>
-                  <h4 className="font-extrabold text-white text-sm">Ludo Online</h4>
-                  <p className="text-[10px] text-slate-400 mt-0.5">4-token race & capture</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setGameType('UNO')}
-                className={`p-4 rounded-2xl border-2 text-left flex flex-col justify-between transition-all ${
-                  gameType === 'UNO'
-                    ? 'bg-amber-950/60 border-amber-500 ring-2 ring-amber-500/40 shadow-lg'
-                    : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
-                }`}
-              >
-                <span className="text-3xl mb-2">🃏</span>
-                <div>
-                  <h4 className="font-extrabold text-white text-sm">UNO Card Game</h4>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Match colors & action cards</p>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* Max Players */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-              2. Maximum Players
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {[2, 3, 4].map((num) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+              {[
+                { id: 'SNAKE_LADDER', name: 'SNAKE & LADDER', sub: '100 Tile Climb' },
+                { id: 'LUDO', name: 'LUDO CLASSIC', sub: '4 Token Race' },
+                { id: 'UNO', name: 'CLASSIC UNO', sub: 'Single Sided' },
+                { id: 'UNO_FLIP', name: 'UNO FLIP!', sub: 'Dual Sided Battle' },
+              ].map(g => (
                 <button
-                  key={num}
+                  key={g.id}
                   type="button"
-                  onClick={() => setMaxPlayers(num)}
-                  className={`py-3 rounded-xl font-extrabold text-sm border transition-all ${
-                    maxPlayers === num
-                      ? 'bg-purple-600 border-purple-500 text-white shadow-md'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                  onClick={() => setGameType(g.id)}
+                  className={`p-3 border text-left flex flex-col justify-between transition-all ${
+                    gameType === g.id
+                      ? 'border-[var(--text)] bg-[var(--border)] text-[var(--accent)] font-bold'
+                      : 'border-[var(--border)] bg-[var(--bg)] opacity-70 hover:opacity-100'
                   }`}
                 >
-                  {num} Players
+                  <div className="font-bold text-xs">[{g.name}]</div>
+                  <div className="text-[9px] opacity-70 mt-1">{g.sub}</div>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Room Privacy */}
-          <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-5 space-y-4">
+          {/* Max Players */}
+          <div>
+            <label className="block text-[10px] uppercase font-bold tracking-wider mb-2 opacity-70">
+              02 // MAXIMUM PLAYERS CAPACITY
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[2, 3, 4].map(num => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => setMaxPlayers(num)}
+                  className={`py-2 text-xs font-bold border transition-all ${
+                    maxPlayers === num
+                      ? 'border-[var(--text)] bg-[var(--border)] text-[var(--accent)]'
+                      : 'border-[var(--border)] bg-[var(--bg)] opacity-70'
+                  }`}
+                >
+                  [{num} PLAYERS]
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* UNO Room Settings */}
+          {isUnoGame && (
+            <div className="p-4 border border-[var(--border)] bg-[var(--bg)] space-y-4">
+              <div className="font-bold text-[var(--accent)] border-b border-[var(--border)] pb-1 text-[11px]">
+                [ UNO GAME PARAMETERS ]
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Starting Hand Size */}
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-wider mb-2 opacity-70">
+                    STARTING CARDS PER PLAYER
+                  </label>
+                  <div className="flex gap-1.5">
+                    {[5, 6, 7, 8, 10].map(c => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setStartingHandSize(c)}
+                        className={`flex-1 py-1.5 text-xs font-bold border ${
+                          startingHandSize === c
+                            ? 'border-[var(--text)] bg-[var(--border)] text-[var(--accent)]'
+                            : 'border-[var(--border)] bg-[var(--panel-bg)] opacity-70'
+                        }`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Per-Turn Timer */}
+                <div>
+                  <label className="block text-[10px] uppercase font-bold tracking-wider mb-2 opacity-70">
+                    PER-TURN TIMER DURATION
+                  </label>
+                  <div className="flex gap-1.5">
+                    {[15, 30, 45, 60, 90].map(t => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setTurnTimerDuration(t)}
+                        className={`flex-1 py-1.5 text-xs font-bold border ${
+                          turnTimerDuration === t
+                            ? 'border-[var(--text)] bg-[var(--border)] text-[var(--accent)]'
+                            : 'border-[var(--border)] bg-[var(--panel-bg)] opacity-70'
+                        }`}
+                      >
+                        {t}s
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Privacy Controls */}
+          <div className="p-4 border border-[var(--border)] bg-[var(--bg)] space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-bold text-slate-200 text-sm">Private Room</h4>
-                <p className="text-xs text-slate-400">Require a password for players joining</p>
+                <div className="font-bold text-xs text-[var(--accent)]">PRIVATE ROOM ACCESS</div>
+                <div className="text-[10px] opacity-70">Require passcode authentication for players</div>
               </div>
               <input
                 type="checkbox"
                 checked={isPrivate}
                 onChange={(e) => setIsPrivate(e.target.checked)}
-                className="w-5 h-5 accent-purple-600 rounded cursor-pointer"
+                className="w-4 h-4 accent-emerald-500 cursor-pointer"
               />
             </div>
 
             {isPrivate && (
               <div className="pt-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  Optional Room Password
-                </label>
-                <div className="relative">
-                  <Lock className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter room password"
-                    className="w-full bg-slate-900 text-white text-sm pl-11 pr-4 py-3 rounded-xl border border-slate-700 focus:outline-none focus:border-purple-500"
-                  />
-                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="ENTER ACCESS PASSWORD"
+                  className="w-full bg-[var(--panel-bg)] text-[var(--text)] text-xs p-2 border border-[var(--border)] focus:outline-none focus:border-[var(--text)]"
+                />
               </div>
             )}
           </div>
@@ -178,9 +204,9 @@ export const CreateRoomPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-lg shadow-xl shadow-purple-600/30 transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+            className="term-button w-full py-3 text-xs font-bold"
           >
-            {loading ? 'Creating Room...' : 'CREATE ROOM & GET CODE'} <ArrowRight className="w-5 h-5" />
+            {loading ? '[ INITIALIZING ROOM... ]' : '[ INITIALIZE ROOM & GENERATE CODE ]'}
           </button>
         </form>
 

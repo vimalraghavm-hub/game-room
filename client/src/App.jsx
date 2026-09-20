@@ -24,7 +24,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <SocketProvider>
-          <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-game selection:bg-purple-600 selection:text-white">
+          <div className="min-h-screen flex flex-col font-mono">
             <Navbar />
             <main className="flex-1">
               <Routes>

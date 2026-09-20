@@ -1,18 +1,29 @@
 /**
- * UNO AI Decision Engine
- * Evaluates playable cards and chooses strategic moves & wild colors.
+ * UNO & UNO FLIP AI Decision Engine
+ * Evaluates playable cards across Light and Dark sides for AI turns.
  */
 
-const COLORS = ['red', 'yellow', 'green', 'blue'];
+const LIGHT_COLORS = ['red', 'yellow', 'green', 'blue'];
+const DARK_COLORS = ['pink', 'teal', 'orange', 'purple'];
 
-export function canPlayCard(card, currentColor, topCard) {
-  if (!card) return false;
-  if (card.color === 'wild' || card.type === 'wild' || card.type === 'draw4') return true;
-  return card.color === currentColor || (topCard && card.value === topCard.value);
+export function getCardFace(card, activeSide = 'light') {
+  if (!card) return null;
+  return activeSide === 'dark' ? (card.darkSide || card.lightSide || card) : (card.lightSide || card);
 }
 
-export function chooseUnoMove(hand, currentColor, topDiscardCard, opponents = [], difficulty = 'Normal') {
-  const playable = hand.filter(card => canPlayCard(card, currentColor, topDiscardCard));
+export function canPlayCard(card, currentColor, topDiscardCard, activeSide = 'light') {
+  const face = getCardFace(card, activeSide);
+  const topFace = topDiscardCard ? getCardFace(topDiscardCard, activeSide) : null;
+
+  if (!face) return false;
+  if (face.color === 'wild' || face.type === 'wild' || face.type === 'draw2' || face.type === 'draw4' || face.type === 'draw_color') return true;
+
+  return face.color === currentColor || (topFace && face.value === topFace.value);
+}
+
+export function chooseUnoMove(hand, currentColor, topDiscardCard, opponents = [], difficulty = 'Normal', activeSide = 'light') {
+  const availableColors = activeSide === 'dark' ? DARK_COLORS : LIGHT_COLORS;
+  const playable = hand.filter(card => canPlayCard(card, currentColor, topDiscardCard, activeSide));
 
   if (playable.length === 0) {
     return { action: 'DRAW' };
@@ -20,49 +31,55 @@ export function chooseUnoMove(hand, currentColor, topDiscardCard, opponents = []
 
   if (difficulty === 'Easy') {
     const card = playable[Math.floor(Math.random() * playable.length)];
-    const chosenColor = (card.color === 'wild' || card.type === 'wild' || card.type === 'draw4')
-      ? COLORS[Math.floor(Math.random() * COLORS.length)]
+    const face = getCardFace(card, activeSide);
+    const chosenColor = (face.color === 'wild' || face.type === 'wild' || face.type === 'draw2' || face.type === 'draw4' || face.type === 'draw_color')
+      ? availableColors[Math.floor(Math.random() * availableColors.length)]
       : null;
     return { action: 'PLAY', card, chosenColor };
   }
 
-  // Count colors in hand to determine dominant color
-  const colorCounts = { red: 0, yellow: 0, green: 0, blue: 0 };
+  // Count colors in AI hand for active side
+  const colorCounts = {};
+  availableColors.forEach(c => colorCounts[c] = 0);
   hand.forEach(c => {
-    if (COLORS.includes(c.color)) {
-      colorCounts[c.color]++;
+    const face = getCardFace(c, activeSide);
+    if (availableColors.includes(face.color)) {
+      colorCounts[face.color]++;
     }
   });
 
-  const dominantColor = Object.keys(colorCounts).reduce((a, b) => colorCounts[a] > colorCounts[b] ? a : b, 'red');
-
-  // Hard AI: check if any opponent is close to winning (1 or 2 cards)
+  const dominantColor = Object.keys(colorCounts).reduce((a, b) => colorCounts[a] > colorCounts[b] ? a : b, availableColors[0]);
   const scaryOpponent = difficulty === 'Hard' && opponents.some(opp => opp.cardCount <= 2);
 
   let chosenCard = null;
 
   if (scaryOpponent) {
-    // Try playing +4, +2, Skip, Reverse first to disrupt leading opponent
-    chosenCard = playable.find(c => c.type === 'draw4') ||
-                 playable.find(c => c.type === 'draw2') ||
-                 playable.find(c => c.type === 'skip') ||
-                 playable.find(c => c.type === 'reverse');
+    // Attack leading player with aggressive action cards (+5, +4, +2, +1, skip_all, skip, flip)
+    chosenCard = playable.find(c => getCardFace(c, activeSide).type === 'draw5') ||
+                 playable.find(c => getCardFace(c, activeSide).type === 'draw4') ||
+                 playable.find(c => getCardFace(c, activeSide).type === 'draw_color') ||
+                 playable.find(c => getCardFace(c, activeSide).type === 'draw2') ||
+                 playable.find(c => getCardFace(c, activeSide).type === 'draw1') ||
+                 playable.find(c => getCardFace(c, activeSide).type === 'skip_all') ||
+                 playable.find(c => getCardFace(c, activeSide).type === 'skip') ||
+                 playable.find(c => getCardFace(c, activeSide).type === 'flip');
   }
 
   if (!chosenCard) {
-    // Prefer non-wild matching color/value over wild cards
-    const nonWildPlayable = playable.filter(c => c.color !== 'wild' && c.type !== 'wild' && c.type !== 'draw4');
-    
+    const nonWildPlayable = playable.filter(c => {
+      const f = getCardFace(c, activeSide);
+      return f.color !== 'wild' && f.type !== 'wild' && f.type !== 'draw2' && f.type !== 'draw4' && f.type !== 'draw_color';
+    });
+
     if (nonWildPlayable.length > 0) {
-      // Prefer dominant color in hand
-      chosenCard = nonWildPlayable.find(c => c.color === dominantColor) || nonWildPlayable[0];
+      chosenCard = nonWildPlayable.find(c => getCardFace(c, activeSide).color === dominantColor) || nonWildPlayable[0];
     } else {
-      // Must play Wild
       chosenCard = playable[0];
     }
   }
 
-  const chosenColor = (chosenCard.color === 'wild' || chosenCard.type === 'wild' || chosenCard.type === 'draw4')
+  const chosenFace = getCardFace(chosenCard, activeSide);
+  const chosenColor = (chosenFace.color === 'wild' || chosenFace.type === 'wild' || chosenFace.type === 'draw2' || chosenFace.type === 'draw4' || chosenFace.type === 'draw_color')
     ? dominantColor
     : null;
 

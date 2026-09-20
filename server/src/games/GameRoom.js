@@ -5,11 +5,14 @@ import UnoGame from './UnoGame.js';
 export class GameRoom {
   constructor(roomCode, gameType, options = {}) {
     this.roomCode = roomCode;
-    this.gameType = gameType; // 'SNAKE_LADDER' or 'LUDO'
+    this.gameType = gameType; // 'SNAKE_LADDER', 'LUDO', 'UNO', 'UNO_FLIP'
     this.hostId = options.hostId || null;
     this.isPrivate = options.isPrivate || false;
     this.password = options.password || null;
     this.maxPlayers = options.maxPlayers || 4;
+
+    this.startingHandSize = options.startingHandSize || 7;
+    this.turnTimerDuration = options.turnTimerDuration || 30;
 
     this.players = []; // [{ id (socketId), userId, username, avatar, isHost, isReady, isConnected, disconnectTimer }]
     this.status = 'LOBBY'; // 'LOBBY', 'PLAYING', 'FINISHED'
@@ -108,8 +111,12 @@ export class GameRoom {
     } else if (this.gameType === 'LUDO') {
       this.gameInstance = new LudoGame();
       this.gameInstance.init(this.players);
-    } else if (this.gameType === 'UNO') {
-      this.gameInstance = new UnoGame(this.players.map(p => ({ id: p.id, name: p.username, avatar: p.avatar })));
+    } else if (this.gameType === 'UNO' || this.gameType === 'UNO_FLIP') {
+      const mode = this.gameType === 'UNO_FLIP' ? 'FLIP' : 'CLASSIC';
+      this.gameInstance = new UnoGame(
+        this.players.map(p => ({ id: p.id, name: p.username, avatar: p.avatar })),
+        { mode, startingHandSize: this.startingHandSize, turnTimerDuration: this.turnTimerDuration }
+      );
       this.gameInstance.start();
     }
     return { success: true, gameType: this.gameType };
@@ -139,6 +146,8 @@ export class GameRoom {
       hostId: this.hostId,
       isPrivate: this.isPrivate,
       maxPlayers: this.maxPlayers,
+      startingHandSize: this.startingHandSize,
+      turnTimerDuration: this.turnTimerDuration,
       status: this.status,
       players: this.players.map(p => ({
         id: p.id,

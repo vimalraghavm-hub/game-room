@@ -1,23 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
-import { PlayerAvatar } from '../components/PlayerAvatar';
 import { ChatWidget } from '../components/ChatWidget';
 import { SnakeLadderView } from '../games/snake-ladder/SnakeLadderView';
 import { LudoView } from '../games/ludo/LudoView';
 import { UnoView } from '../games/uno/UnoView';
-import {
-  Copy,
-  Check,
-  LogOut,
-  Play,
-  CheckCircle2,
-  Users,
-  ShieldAlert,
-  WifiOff,
-  Sparkles,
-} from 'lucide-react';
 
 export const RoomPage = () => {
   const { roomCode } = useParams();
@@ -25,7 +13,6 @@ export const RoomPage = () => {
   const { profile } = useAuth();
   const {
     roomState,
-    connected,
     isReconnecting,
     socket,
     toggleReady,
@@ -85,10 +72,11 @@ export const RoomPage = () => {
 
   if (!roomState) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
-        <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4" />
-        <h3 className="text-xl font-bold text-slate-200">Connecting to Room...</h3>
-        <p className="text-slate-400 text-sm mt-1">Synchronizing game room state</p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-4 font-mono text-[var(--text)]">
+        <div className="term-box p-6 text-center max-w-sm w-full">
+          <div className="text-xs font-bold text-[var(--accent)] mb-2">// CONNECTING TO ROOM...</div>
+          <p className="text-[10px] opacity-70">SYNCHRONIZING SERVER GAME STATE</p>
+        </div>
       </div>
     );
   }
@@ -96,32 +84,31 @@ export const RoomPage = () => {
   // Active Gameplay View
   if (roomState.status === 'PLAYING' || roomState.status === 'FINISHED') {
     return (
-      <div className="min-h-screen pb-12">
+      <div className="min-h-screen pb-12 font-mono text-[var(--text)]">
         {/* Top Mini Header Bar */}
-        <div className="bg-slate-900/90 border-b border-slate-800 px-4 py-3 sticky top-16 z-30 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="font-mono font-black text-purple-400 text-lg tracking-wider">
+        <div className="border-b border-[var(--border)] bg-[var(--panel-bg)] px-4 py-2 sticky top-14 z-30">
+          <div className="max-w-7xl mx-auto flex items-center justify-between text-xs">
+            <div className="flex items-center gap-3 font-bold">
+              <span className="text-[var(--accent)]">
                 ROOM: {roomState.roomCode}
               </span>
-              <span className="text-xs bg-slate-800 text-slate-300 font-bold px-2.5 py-1 rounded-full uppercase">
-                {roomState.gameType === 'SNAKE_LADDER' ? '🎲 Snake & Ladder' : roomState.gameType === 'LUDO' ? '🟢 Ludo' : '🃏 UNO Card Game'}
+              <span className="opacity-80">
+                // {roomState.gameType === 'SNAKE_LADDER' ? 'SNAKE & LADDER' : roomState.gameType === 'LUDO' ? 'LUDO' : roomState.gameType === 'UNO_FLIP' ? 'UNO FLIP' : 'CLASSIC UNO'}
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 onClick={handleCopyLink}
-                className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700"
+                className="term-button px-2.5 py-1 text-[10px]"
               >
-                {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                {copiedLink ? 'Copied Link!' : 'Invite Link'}
+                {copiedLink ? '[ COPIED ]' : '[ INVITE LINK ]'}
               </button>
               <button
                 onClick={handleLeave}
-                className="flex items-center gap-1 text-xs font-bold text-red-400 hover:text-red-300 bg-red-950/40 hover:bg-red-950/80 border border-red-500/30 px-3 py-1.5 rounded-lg"
+                className="px-2.5 py-1 text-[10px] border border-red-500 bg-red-950/40 text-red-300 hover:bg-red-950"
               >
-                <LogOut className="w-3.5 h-3.5" /> Leave
+                [ LEAVE ]
               </button>
             </div>
           </div>
@@ -129,8 +116,8 @@ export const RoomPage = () => {
 
         {/* Reconnect Banner */}
         {isReconnecting && (
-          <div className="bg-amber-600 text-slate-950 px-4 py-2 text-center text-xs font-black flex items-center justify-center gap-2">
-            <WifiOff className="w-4 h-4 animate-bounce" /> Connection lost. Reconnecting to game room...
+          <div className="bg-amber-600 text-slate-950 px-4 py-1.5 text-center text-xs font-bold">
+            ⚠️ RECONNECTING TO GAME ROOM SERVER...
           </div>
         )}
 
@@ -152,146 +139,118 @@ export const RoomPage = () => {
     roomState.players.every((p) => p.isReady);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-6xl mx-auto px-4 py-8 space-y-6 font-mono text-[var(--text)]">
       
-      {/* Lobby Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+      {/* Lobby Header Dossier */}
+      <div className="term-box p-6 flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-xs font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
-              Multiplayer Lobby
-            </span>
-            <span className="text-xs font-bold text-slate-400">
-              {roomState.gameType === 'SNAKE_LADDER' ? '🎲 Snake & Ladder' : roomState.gameType === 'LUDO' ? '🟢 Ludo' : '🃏 UNO Card Game'}
-            </span>
+          <div className="text-[10px] uppercase font-bold tracking-widest text-[var(--accent)] mb-1">
+            // MULTIPLAYER ROOM LOBBY
           </div>
-
-          <h2 className="text-3xl sm:text-4xl font-black text-white flex items-center gap-3">
-            ROOM CODE: <span className="font-mono text-purple-400 tracking-wider">{roomState.roomCode}</span>
+          <h2 className="text-2xl sm:text-3xl font-black text-[var(--accent)]">
+            ROOM CODE: <span className="underline">{roomState.roomCode}</span>
           </h2>
+          <div className="text-xs opacity-70 mt-1 flex flex-wrap gap-3">
+            <span>GAME: {roomState.gameType}</span>
+            <span>CAPACITY: {roomState.players.length}/{roomState.maxPlayers}</span>
+            {roomState.startingHandSize && <span>STARTING CARDS: {roomState.startingHandSize}</span>}
+            {roomState.turnTimerDuration && <span>TIMER: {roomState.turnTimerDuration}s</span>}
+          </div>
         </div>
 
-        {/* Room Action Buttons */}
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto text-xs font-bold">
           <button
             onClick={handleCopyCode}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-all"
+            className="term-button px-3 py-2"
           >
-            {copiedCode ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-purple-400" />}
-            {copiedCode ? 'COPIED CODE' : 'COPY CODE'}
+            {copiedCode ? '[ COPIED ]' : '[ COPY CODE ]'}
           </button>
-
           <button
             onClick={handleCopyLink}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 text-xs font-bold border border-purple-500/40 transition-all"
+            className="term-button px-3 py-2"
           >
-            {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-            {copiedLink ? 'COPIED LINK' : 'COPY INVITE LINK'}
+            {copiedLink ? '[ COPIED ]' : '[ COPY INVITE LINK ]'}
           </button>
-
           <button
             onClick={handleLeave}
-            className="px-4 py-2.5 rounded-xl bg-red-950/40 hover:bg-red-950/80 text-red-400 hover:text-red-300 text-xs font-bold border border-red-500/30 transition-all"
+            className="px-3 py-2 border border-red-500 bg-red-950/40 text-red-300 hover:bg-red-950"
           >
-            LEAVE
+            [ LEAVE ]
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="p-4 rounded-2xl bg-red-950/60 border border-red-500/40 flex items-center gap-3 text-red-300 text-sm">
-          <ShieldAlert className="w-5 h-5 flex-shrink-0" />
-          <span>{error}</span>
+        <div className="p-3 border border-red-500 bg-red-950/60 text-red-300 text-xs">
+          [ERROR]: {error}
         </div>
       )}
 
-      {/* Lobby Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Players List (2 cols) */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col justify-between space-y-6">
-          
+        {/* Players List */}
+        <div className="lg:col-span-2 term-box p-6 space-y-6 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
-              <div className="flex items-center gap-2">
-                <Users className="w-6 h-6 text-purple-400" />
-                <h3 className="text-xl font-extrabold text-white">Joined Players</h3>
-              </div>
-              <span className="text-sm font-bold text-slate-400 bg-slate-950 px-3 py-1 rounded-full border border-slate-800">
-                {roomState.players.length} / {roomState.maxPlayers}
-              </span>
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--border)] mb-4 text-xs font-bold">
+              <span className="text-[var(--accent)]">[ CONNECTED PLAYERS ]</span>
+              <span className="opacity-70">{roomState.players.length} / {roomState.maxPlayers}</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {roomState.players.map((p) => (
-                <PlayerAvatar
+            <div className="space-y-2">
+              {roomState.players.map((p, idx) => (
+                <div
                   key={p.id}
-                  player={p}
-                  isHost={p.isHost}
-                  gameType={roomState.gameType}
-                />
+                  className={`p-3 border flex items-center justify-between text-xs ${
+                    p.isReady ? 'border-[var(--text)] bg-[var(--bg)]' : 'border-[var(--border)] opacity-80'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-[var(--accent)]">0{idx + 1} //</span>
+                    <span>{p.avatar} {p.username}</span>
+                    {p.isHost && <span className="text-[9px] border border-[var(--border)] px-1.5 py-0.5">[HOST]</span>}
+                  </div>
+                  <span className={`font-bold ${p.isReady ? 'text-[var(--accent)]' : 'opacity-50'}`}>
+                    [{p.isReady ? 'READY' : 'WAITING'}]
+                  </span>
+                </div>
               ))}
 
-              {/* Empty Slots */}
               {[...Array(Math.max(0, roomState.maxPlayers - roomState.players.length))].map((_, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-center p-6 border-2 border-dashed border-slate-800 rounded-xl text-slate-600 text-xs font-bold uppercase tracking-wider"
+                  className="p-3 border border-dashed border-[var(--border)] text-center text-xs opacity-40"
                 >
-                  Waiting for player...
+                  // WAITING FOR PLAYER TO CONNECT...
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Player Ready / Host Start Controls */}
-          <div className="pt-6 border-t border-slate-800 space-y-4">
-            
-            {/* Ready Toggle Button for Current Player */}
+          {/* Controls */}
+          <div className="pt-4 border-t border-[var(--border)] space-y-3">
             <button
               onClick={handleToggleReady}
-              className={`w-full py-3.5 rounded-2xl font-extrabold text-base shadow-xl flex items-center justify-center gap-2 transition-all ${
-                me?.isReady
-                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30'
-                  : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/30'
+              className={`term-button w-full py-2.5 text-xs ${
+                me?.isReady ? 'border-emerald-500 text-emerald-300' : ''
               }`}
             >
-              <CheckCircle2 className="w-5 h-5" />
-              {me?.isReady ? '✓ YOU ARE READY! (CLICK TO UNREADY)' : 'CLICK TO BECOME READY'}
+              {me?.isReady ? '[ ✓ YOU ARE READY (CLICK TO UNREADY) ]' : '[ CLICK TO BECOME READY ]'}
             </button>
 
-            {/* Host Start Game Control */}
             {isHost && (
               <button
                 onClick={handleStartGame}
                 disabled={!canStart || starting}
-                className={`w-full py-4 rounded-2xl font-black text-lg shadow-xl flex items-center justify-center gap-2 transition-all ${
-                  canStart && !starting
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-emerald-500/30 hover:scale-[1.02]'
-                    : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-                }`}
+                className="term-button w-full py-3 text-sm font-bold border-[var(--text)] bg-[var(--border)] text-[var(--accent)] disabled:opacity-40"
               >
-                <Play className="w-6 h-6 fill-current" />
-                {starting
-                  ? 'STARTING GAME...'
-                  : canStart
-                  ? 'START GAME NOW 🚀'
-                  : roomState.players.length < 2
-                  ? `WAITING FOR PLAYERS (${roomState.players.length}/${roomState.maxPlayers})`
-                  : 'WAITING FOR ALL PLAYERS TO BE READY'}
+                {starting ? '[ INITIALIZING GAME... ]' : canStart ? '[ START GAME NOW 🚀 ]' : '[ WAITING FOR ALL PLAYERS TO BE READY ]'}
               </button>
             )}
-
-            {!isHost && canStart && (
-              <div className="text-center text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 py-2.5 rounded-xl animate-pulse">
-                ALL PLAYERS READY! WAITING FOR HOST TO START GAME...
-              </div>
-            )}
           </div>
-
         </div>
 
-        {/* Chat Sidebar (1 col) */}
+        {/* Chat Widget */}
         <div className="lg:col-span-1">
           <ChatWidget messages={roomState.chatMessages} />
         </div>

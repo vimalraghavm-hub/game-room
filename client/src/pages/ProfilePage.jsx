@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../services/supabase';
-import { User, Trophy, Gamepad2, Calendar, Mail, Edit3, Check, Shield } from 'lucide-react';
 
 export const ProfilePage = () => {
   const { profile, updateUsername } = useAuth();
@@ -63,128 +62,99 @@ export const ProfilePage = () => {
   const winRate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 font-mono text-[var(--text)]">
       
-      {/* Header Profile Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Profile Header Box */}
+      <div className="term-box p-6 space-y-4">
+        <div className="flex items-center justify-between pb-2 border-b border-[var(--border)] text-xs font-bold">
+          <span className="text-[var(--accent)]">[ USER DOSSIER // ACCOUNT ]</span>
+          <span className="opacity-70">{profile?.isGuest ? 'GUEST ACCOUNT' : 'AUTHENTICATED'}</span>
+        </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
-          <img
-            src={profile?.avatar}
-            alt={profile?.username}
-            className="w-24 h-24 rounded-full border-4 border-purple-500 bg-slate-950 shadow-xl object-cover"
-          />
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          <div className="w-16 h-16 border border-[var(--text)] bg-[var(--bg)] flex items-center justify-center text-2xl font-bold">
+            {profile?.avatar ? <img src={profile.avatar} alt="User" className="w-full h-full object-cover" /> : '👤'}
+          </div>
 
-          <div className="flex-1 text-center sm:text-left space-y-2">
-            <div className="flex items-center justify-center sm:justify-start gap-3">
+          <div className="flex-1 text-center sm:text-left space-y-1">
+            <div className="flex items-center justify-center sm:justify-start gap-2">
               {editing ? (
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
-                    className="bg-slate-950 text-white font-bold px-3 py-1.5 rounded-xl border border-purple-500 focus:outline-none"
+                    className="bg-[var(--bg)] text-[var(--text)] font-bold text-xs p-1.5 border border-[var(--text)]"
                   />
                   <button
                     onClick={handleSaveUsername}
-                    className="p-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl"
+                    className="term-button px-2 py-1 text-xs"
                   >
-                    <Check className="w-4 h-4" />
+                    [SAVE]
                   </button>
                 </div>
               ) : (
                 <>
-                  <h2 className="text-3xl font-black text-white">{profile?.username}</h2>
+                  <h2 className="text-xl font-bold text-[var(--accent)]">{profile?.username}</h2>
                   <button
                     onClick={() => setEditing(true)}
-                    className="p-1.5 text-slate-400 hover:text-purple-400 transition-colors"
-                    title="Edit Username"
+                    className="text-xs opacity-70 hover:opacity-100"
                   >
-                    <Edit3 className="w-4 h-4" />
+                    [EDIT]
                   </button>
                 </>
               )}
             </div>
-
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-slate-400">
-              <span className="flex items-center gap-1.5">
-                <Mail className="w-4 h-4 text-purple-400" /> {profile?.email}
-              </span>
-              {profile?.isGuest && (
-                <span className="bg-amber-500/20 text-amber-400 font-bold px-2.5 py-0.5 rounded-full border border-amber-500/30">
-                  Guest Account
-                </span>
-              )}
-            </div>
+            <div className="text-xs opacity-70">{profile?.email || 'GUEST USER'}</div>
           </div>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl text-center space-y-1">
-          <Gamepad2 className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-          <span className="text-3xl font-black text-white block">{gamesPlayed}</span>
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Games Played</span>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-bold">
+        <div className="term-box p-4 text-center">
+          <span className="text-2xl font-black text-[var(--accent)] block">{gamesPlayed}</span>
+          <span className="text-[10px] opacity-70 uppercase tracking-wider">GAMES PLAYED</span>
         </div>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl text-center space-y-1">
-          <Trophy className="w-8 h-8 text-amber-400 mx-auto mb-2" />
-          <span className="text-3xl font-black text-white block">{gamesWon}</span>
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Games Won</span>
+        <div className="term-box p-4 text-center">
+          <span className="text-2xl font-black text-[var(--accent)] block">{gamesWon}</span>
+          <span className="text-[10px] opacity-70 uppercase tracking-wider">GAMES WON</span>
         </div>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl text-center space-y-1">
-          <Shield className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-          <span className="text-3xl font-black text-white block">{winRate}%</span>
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Win Rate</span>
+        <div className="term-box p-4 text-center">
+          <span className="text-2xl font-black text-[var(--accent)] block">{winRate}%</span>
+          <span className="text-[10px] opacity-70 uppercase tracking-wider">WIN RATE</span>
         </div>
       </div>
 
-      {/* Recent Match History */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
-        <h3 className="text-xl font-extrabold text-white flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-amber-400" /> Recent Match History
-        </h3>
+      {/* Match History */}
+      <div className="term-box p-6 space-y-4 text-xs">
+        <div className="font-bold text-[var(--accent)] border-b border-[var(--border)] pb-2">
+          [ MATCH HISTORY LOGS ]
+        </div>
 
         {loadingHistory ? (
-          <div className="text-center text-slate-500 text-sm py-8">Loading history...</div>
+          <div className="text-center opacity-50 py-4">// FETCHING MATCH LOGS...</div>
         ) : history.length === 0 ? (
-          <div className="text-center text-slate-500 text-sm py-8 italic border border-dashed border-slate-800 rounded-2xl">
-            No match history recorded yet. Play a match online to save your results! 🎲
+          <div className="text-center opacity-50 py-6 border border-dashed border-[var(--border)]">
+            // NO MATCH HISTORY LOGGED YET. PLAY ONLINE TO SAVE STATS.
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {history.map((item, idx) => (
               <div
                 key={idx}
-                className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center justify-between text-sm"
+                className="p-2.5 border border-[var(--border)] bg-[var(--bg)] flex items-center justify-between text-xs"
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">
-                    {item.games?.game_type === 'SNAKE_LADDER' ? '🎲' : '🟢'}
+                <div>
+                  <span className="font-bold text-[var(--accent)]">
+                    {item.games?.game_type || 'GAME'}
                   </span>
-                  <div>
-                    <span className="font-bold text-slate-200 block">
-                      {item.games?.game_type === 'SNAKE_LADDER' ? 'Snake & Ladder' : 'Ludo'}
-                    </span>
-                    <span className="text-xs text-slate-500">
-                      {new Date(item.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
+                  <span className="text-[10px] opacity-60 block">
+                    {new Date(item.created_at).toLocaleDateString()}
+                  </span>
                 </div>
-
-                <div className="text-right">
-                  <span
-                    className={`font-black text-xs px-3 py-1 rounded-full uppercase ${
-                      item.rank === 1
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                        : 'bg-slate-800 text-slate-400'
-                    }`}
-                  >
-                    {item.rank === 1 ? '🏆 Winner' : `Rank #${item.rank}`}
-                  </span>
+                <div className="font-bold">
+                  [{item.rank === 1 ? '🏆 WINNER' : `RANK #${item.rank}`}]
                 </div>
               </div>
             ))}

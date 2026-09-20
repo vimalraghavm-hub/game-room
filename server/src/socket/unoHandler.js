@@ -7,7 +7,7 @@ export function registerUnoHandlers(io, socket, rooms) {
     const roomCode = socket.data.roomCode;
     const room = rooms.get(roomCode);
 
-    if (!room || !room.gameInstance || room.gameType !== 'UNO') {
+    if (!room || !room.gameInstance || (room.gameType !== 'UNO' && room.gameType !== 'UNO_FLIP')) {
       return callback?.({ success: false, error: 'Invalid game state or game type.' });
     }
 
@@ -38,7 +38,7 @@ export function registerUnoHandlers(io, socket, rooms) {
     const roomCode = socket.data.roomCode;
     const room = rooms.get(roomCode);
 
-    if (!room || !room.gameInstance || room.gameType !== 'UNO') {
+    if (!room || !room.gameInstance || (room.gameType !== 'UNO' && room.gameType !== 'UNO_FLIP')) {
       return callback?.({ success: false, error: 'Invalid game state or game type.' });
     }
 
